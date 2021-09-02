@@ -1,1 +1,1 @@
-# scimirror
+# To decentralized host knowledge
