@@ -2,7 +2,7 @@
 
 ## The goal
 
-We need to migrate all the papers into IPFS, capture the index, then develop a mirror page that retrieves all the papers from IPFS. It's very hard to download 80+TB of data and pinning them by one person. It will be very helpful if we could have a co-work with paper hosts.
+To build an unstoppable SCIHub, We could migrate all the papers into IPFS and capture the index, then develop a mirror page that retrieves all the papers from IPFS. It's very hard to download 80+TB of data and pinning them by one person. It will be very helpful if we could have a co-work with all the paper maintainers.
 
 The goal could be split into the following steps, which require the cooperation of the torrent maintainers and the developers.
 
