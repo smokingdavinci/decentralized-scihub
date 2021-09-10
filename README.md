@@ -13,9 +13,10 @@ The goal could be split into the following steps, which require the cooperation 
 2. Download and install IPFS;
 
 3. Run a script in each folder, it will:
-  a. store the folders in IPFS and generate IPFS CIDs for the folder and each paper.
+
+    a. store the folders in IPFS and generate IPFS CIDs for the folder and each paper.
   
-  b. generate an index file for the papers in each folder. One index file includes the mapping of doc titles/summaries, DOIs, and IPFS CIDs, the index file name will be the folder's IPFS CID, so don't change it; (I will write the script and publish the GitHub repo in these weeks);
+    b. generate an index file for the papers in each folder. One index file includes the mapping of doc titles/summaries, DOIs, and IPFS CIDs, the index file name will be the folder's IPFS CID, so don't change it; (I will write the script and publish the GitHub repo in these weeks);
 
 4. Go to https://fs.crust.network/ to apply for free storage of crust;
 
