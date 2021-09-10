@@ -16,9 +16,11 @@ We use this repo to collaborate in the following areas:
 
 ### How to upload papers
 
+> Note: this part has not yet been completed
+
 1. Unzip the papers, pack those docs into several folders, ensure that the size of each folder is about 5GB;
 2. Download and run IPFS on your computer;
-3. Add a new issue to apply for free CRU, which will help you store those docs on decentralized storage network —— [Crust](https://github.com/crustio/crust);
+3. Add a new issue to apply for free CRU, which will help you store those docs on decentralized storage network;
 4. Download this repo and run the script in each folder, it will:
     - Store the folders in your loacal IPFS node and generate IPFS CIDs for the folder and each paper.
     - Use CRU to place store order on Crust and those docs will be stored on Crust 
