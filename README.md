@@ -6,9 +6,9 @@ To build an unstoppable SCIHub, We could migrate all the papers into IPFS and ca
 
 ## About This Repo
 
-- Setup a public gitHub repo for developers and paper maintainers;
+We use this repo to collaborate in the following areas:
 - Write a script to assist torrent maintainers to put the document on IPFS;
-- Collect the index files pushed by all the torrent maintainers;
+- Collect the index files pushed by all the torrent maintainers (index file is the result of the script execution);
 - Develop a front-end that can use the index files;
 - Host the front-end on IPFS;
 
