@@ -22,7 +22,9 @@ jobs:
       cid: ${{ steps._getcid.outputs.cid }}
     steps:
       - id: _getcid
-        run: echo "::set-output name=cid::$(etc/getcid.sh ${{ needs.changefiles.outputs.files }})"
+        run: |
+          chmod +x "${GITHUB_WORKSPACE}/.github/etc/getcid.sh}"
+          echo "::set-output name=cid::$(./.github/etc/getcid.sh ${{ needs.changefiles.outputs.files }})"
 
   getcidlength:
     runs-on: ubuntu-latest
