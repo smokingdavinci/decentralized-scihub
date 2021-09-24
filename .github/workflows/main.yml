@@ -16,8 +16,8 @@ jobs:
         run: |
           echo "::set-output name=cid::$(git status -s)"
           echo "cid:$(./.github/workflows/etc/getcid.sh)"
-          echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request_target.base.sha }} `git log -1 --format=' %H'`)"
-          #echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request_target.base.sha }} ${{ github.sha }})"
+          echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} `git log -1 --format=' %H'`)"
+          #echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }})"
       - id: getcidlength
         run: echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
 
