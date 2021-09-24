@@ -23,6 +23,7 @@ jobs:
 
   upload_sci_doc:
     name: Upload SCI doc
+    runs-on: ubuntu-latest
     needs: uploadcid
     if: ${{ needs.uploadcid.outputs.cidlength == 46 }}
     steps:
