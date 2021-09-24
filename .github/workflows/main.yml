@@ -26,7 +26,7 @@ jobs:
         run: |
           chmod +x ".github/etc/getcid.sh}"
           echo "::set-output name=cid::$(./.github/etc/getcid.sh ${{ needs.changefiles.outputs.files }})"
-        shell: base
+        shell: bash
 
   getcidlength:
     runs-on: ubuntu-latest
