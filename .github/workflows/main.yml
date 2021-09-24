@@ -21,6 +21,7 @@ jobs:
     outputs:
       cid: ${{ steps._getcid.outputs.cid }}
     steps:
+      - uses: actions/checkout@v2
       - id: _getcid
         run: |
           chmod +x "${GITHUB_WORKSPACE}/.github/etc/getcid.sh}"
