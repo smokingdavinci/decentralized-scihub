@@ -11,8 +11,8 @@ jobs:
       cidlength: ${{ steps.getcidlength.outputs.length }}
     steps:
       - name: Checkout repository
+        id: getcid
         uses: actions/checkout@v2
-      - id: getcid
         run: |
           echo "::set-output name=cid::$(git status -s)"
           echo "cid:$(./.github/workflows/etc/getcid.sh)"
