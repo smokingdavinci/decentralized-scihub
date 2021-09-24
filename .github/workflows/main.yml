@@ -40,5 +40,5 @@ jobs:
     steps:
       - uses: crustio/ipfs-crust-action@v1.0.8
         with:
-          cid: ${{ needs..outputs.cid }}
+          cid: ${{ needs.getcid.outputs.cid }}
           seeds: ${{ secrets.CRUST_SEEDS }}
