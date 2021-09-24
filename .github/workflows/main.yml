@@ -4,30 +4,41 @@ on:
       - main
 
 jobs:
-  uploadcid:
+  changefiles:
     runs-on: ubuntu-latest
     outputs:
-      cid: ${{ steps.getcid.outputs.cid }}
-      cidlength: ${{ steps.getcidlength.outputs.length }}
+      files: ${{ steps.getchangefiles.outputs.files }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v1
-      - id: getcid
-        run: |
-          echo "::set-output name=cid::$(git status -s)"
-          echo "cid:$(./.github/workflows/etc/getcid.sh)"
-          echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }})"
-          #echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.sha }} )"
-      - id: getcidlength
-        run: echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
+      - id: getchangefiles
+        run: echo "::set-output name=files::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }})"
+
+  getcid:
+    runs-on: ubuntu-latest
+    needs: changefiles
+    outputs:
+      cid: ${{ steps._getcid.outputs.cid }}
+    steps:
+      - id: _getcid
+        run: echo "::set-output name=cid::$(./.github/workflows/etc/getcid.sh ${{ needs.changefiles.outputs.files }})"
+
+  getcidlength:
+    runs-on: ubuntu-latest
+    needs: getcid
+    outputs:
+      length: ${{ steps._getcidlength.outputs.length }}
+    steps:
+      - id: _getcidlength
+        run: echo "::set-output name=length::$( echo ${{ needs.getcid.outputs.cid }} | awk '{print length}')"
 
   upload_sci_doc:
     name: Upload SCI doc
     runs-on: ubuntu-latest
-    needs: uploadcid
-    if: ${{ needs.uploadcid.outputs.cidlength == 46 }}
+    needs: [getcid, getcidlength]
+    if: ${{ needs.getcidlength.outputs.length == 46 }}
     steps:
       - uses: crustio/ipfs-crust-action@v1.0.8
         with:
-          cid: ${{ needs.uploadcid.outputs.cid }}
+          cid: ${{ needs..outputs.cid }}
           seeds: ${{ secrets.CRUST_SEEDS }}
