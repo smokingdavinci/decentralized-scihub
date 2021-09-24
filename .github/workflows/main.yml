@@ -26,6 +26,7 @@ jobs:
         run: |
           chmod +x ".github/etc/getcid.sh"
           echo "::set-output name=cid::$(./.github/etc/getcid.sh ${{ needs.changefiles.outputs.files }})"
+          echo "output:$(./.github/etc/getcid.sh ${{ needs.changefiles.outputs.files }})"
 
   getcidlength:
     runs-on: ubuntu-latest
@@ -35,7 +36,7 @@ jobs:
     steps:
       - id: _getcidlength
         run: echo "::set-output name=length::$( echo ${{ needs.getcid.outputs.cid }} | awk '{print length}')"
-      - run: echo "cid:${{needs.getcid.outputs.cid}}"
+      - run: echo "cid:${{ needs.getcid.outputs.cid }}"
 
   upload_sci_doc:
     name: Upload SCI doc
