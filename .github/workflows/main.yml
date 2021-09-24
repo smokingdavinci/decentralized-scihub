@@ -15,9 +15,8 @@ jobs:
       - id: getcid
         env:
           CID: "$(./etc/getcid.sh)"
-        run: |
-          echo "::set-output name=cid::$CID"
-          echo $CID
+        run: echo "::set-output name=cid::$CID"
+      - run: echo $CID
       - id: getcidlength
         run: |
           echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
