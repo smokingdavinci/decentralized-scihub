@@ -16,10 +16,10 @@ jobs:
         env:
           CID: "$(./etc/getcid.sh)"
         run: |
-          echo "::set-output name=cid::${{ CID }}"
+          echo "::set-output name=cid::$CID"
       - id: getcidlength
         run: |
-          echo "::set-output name=cidlength::$( echo ${{ CID }} | awk '{print length}')"
+          echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
 
   upload_sci_doc:
     name: Upload SCI doc
