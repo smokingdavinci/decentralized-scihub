@@ -14,8 +14,8 @@ jobs:
         uses: actions/checkout@v2
       - id: getcid
         run: |
-          echo "::set-output name=cid::$(ls)"
-          echo "cid:$(./etc/getcid.sh)"
+          echo "::set-output name=cid::$(./.github/workflows/etc/getcid.sh)"
+          echo "cid:$(./.github/workflows/etc/getcid.sh)"
       - id: getcidlength
         run: echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
 
