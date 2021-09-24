@@ -16,7 +16,7 @@ jobs:
         run: |
           echo "::set-output name=cid::$(git status -s)"
           echo "cid:$(./.github/workflows/etc/getcid.sh)"
-          echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.sha }} ${{ github.sha }})"
+          echo "status:$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }})"
       - id: getcidlength
         run: echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
 
