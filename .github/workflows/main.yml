@@ -13,13 +13,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - id: getcid
-        env:
-          CID: "$(./etc/getcid.sh)"
-        run: echo "::set-output name=cid::$CID"
-      - run: echo $CID
+        run: echo "::set-output name=cid::$(./etc/getcid.sh)"
       - id: getcidlength
         run: |
           echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
+        run: echo ${{ steps.getcid.outputs.cid }}
 
   upload_sci_doc:
     name: Upload SCI doc
