@@ -16,7 +16,7 @@ jobs:
         run: |
           echo "::set-output name=cid::$(git status -s)"
           echo "cid:$(./.github/workflows/etc/getcid.sh)"
-          echo "status:$(git status -s)"
+          echo "status:$(git status)"
       - id: getcidlength
         run: echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
 
