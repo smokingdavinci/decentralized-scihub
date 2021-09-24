@@ -17,7 +17,7 @@ jobs:
       - id: getcidlength
         run: |
           echo "::set-output name=cidlength::$( echo $CID | awk '{print length}')"
-        run: echo ${{ steps.getcid.outputs.cid }}
+      - run: echo ${{ steps.getcid.outputs.cid }}
 
   upload_sci_doc:
     name: Upload SCI doc
