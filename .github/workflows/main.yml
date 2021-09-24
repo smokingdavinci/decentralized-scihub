@@ -1,0 +1,31 @@
+on:
+  pull_request:
+    branchs:
+      - main
+
+jobs:
+  uploadcid:
+    runs-on: ubuntu-latest
+    outputs:
+      cid: ${{ steps.getcid.outputs.cid }}
+      cidlength: ${{ steps.getcidlength.outputs.length }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - id: getcid
+        run: |
+          echo "::set-output name=cid::$(./etc/getcid.sh)"
+      - id: getcidlength
+        needs: getcid
+        run: |
+          echo "::set-output name=cidlength::$( echo ${{ uploadcid.outputs.cid }} | awk '{print length}')"
+
+  upload_sci_doc:
+    name: Upload SCI doc
+    needs: uploadcid
+    if: ${{ needs.uploadcid.outputs.cidlength == 46 }}
+    steps:
+      - uses: crustio/ipfs-crust-action@v1.0.8
+        with:
+          cid: ${{ needs.uploadcid.outputs.cid }}
+          seeds: ${{ secrets.CRUST_SEEDS }}

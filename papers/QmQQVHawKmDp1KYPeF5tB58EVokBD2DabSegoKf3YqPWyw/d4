@@ -1,0 +1,14 @@
+{
+  "cid": "QmZsyqj9aesDEew5QWsRwyosBS3WX71ftHSFp1mZR2TzxK",
+  "size": 14,
+  "filename": "file4",
+  "meta": {
+    "title": "t1",
+    "doi": "d4",
+    "author": [
+      "a1",
+      "a2"
+    ],
+    "pmid": ""
+  }
+}
