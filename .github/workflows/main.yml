@@ -24,9 +24,8 @@ jobs:
       - uses: actions/checkout@v1
       - id: _getcid
         run: |
-          chmod +x ".github/etc/getcid.sh}"
+          chmod +x ".github/etc/getcid.sh"
           echo "::set-output name=cid::$(./.github/etc/getcid.sh ${{ needs.changefiles.outputs.files }})"
-        shell: bash
 
   getcidlength:
     runs-on: ubuntu-latest
