@@ -12,8 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
       - id: getchangefiles
-        run: echo "::set-output name=files::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
-      - run: echo "ls:$(ls .github/etc), pwd:$(pwd)"
+        run: echo "::set-output name=files::$(git diff --name-only --diff-filter=ACM ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
 
   getcid:
     runs-on: ubuntu-latest
@@ -35,7 +34,6 @@ jobs:
     steps:
       - id: _getcidlength
         run: echo "::set-output name=length::$( echo ${{ needs.getcid.outputs.cid }} | awk '{print length}')"
-      - run: echo "cid:${{ needs.getcid.outputs.cid }}"
 
   upload_sci_doc:
     name: Upload SCI doc
