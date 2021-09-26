@@ -40,7 +40,7 @@ jobs:
     needs: [getcid, getcidlength]
     if: ${{ needs.getcidlength.outputs.length == 46 }}
     steps:
-      - uses: crustio/ipfs-crust-action@v1.0.8
+      - uses: crustio/ipfs-crust-action@v2.0.3
         with:
           cid: ${{ needs.getcid.outputs.cid }}
           seeds: ${{ secrets.CRUST_SEEDS }}
