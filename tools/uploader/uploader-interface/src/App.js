@@ -1,17 +1,18 @@
 import './App.css';
 import React from 'react';
 import 'antd/dist/antd.css';
-import { Steps, Button, Upload, message } from 'antd';
+import { Steps, Button, Upload, message, Table, Input, Tooltip, Progress } from 'antd';
 import ReactMarkdown from 'react-markdown'
-import fs from 'fs'
 
 import {
   RadarChartOutlined,
-  FileTextOutlined,
   EditOutlined,
   CalculatorOutlined,
   PullRequestOutlined,
-  FolderOpenOutlined
+  FolderOpenOutlined,
+  UserOutlined,
+  KeyOutlined,
+  BarcodeOutlined,
 } from '@ant-design/icons';
 
 const { Step } = Steps;
@@ -20,10 +21,6 @@ const steps = [
   {
     title: 'Run IPFS',
     icon: <RadarChartOutlined />
-  },
-  {
-    title: 'Prepare papers',
-    icon: <FileTextOutlined />
   },
   {
     title: 'Fill metadata',
@@ -60,19 +57,84 @@ const App = () => {
     setCurrent(current + 1);
   };
 
-  // IPFS part
   const checkIpfs = () => {
-    message.info('Checking Ipfs');
+    message.info('Checking ipfs');
     enableNext();
     message.success('Ipfs is running');
   };
 
-  // Papers part
-  const readPapersFolder = () => {
-    var readDir = fs.readdirSync("./");
-    message.info(readDir);
+  const checkMetadata = () => {
+    message.info('Checking metadata');
+    enableNext();
+    message.success('Metadata is right');
   };
 
+  const [paperList, setPaperList] = React.useState([]);
+  const paperListColumns = [
+    {
+      title: 'Paper Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Title',
+      render: text => <Input prefix={<KeyOutlined />} />
+    },
+    {
+      title: 'DOI',
+      render: text => <Input prefix={<BarcodeOutlined />} />
+    },
+    {
+      title: 'Authors',
+      render: text => <Input prefix={<UserOutlined />} />
+    },
+  ];
+
+  const SelectPapers = () => {
+    const props = {
+      directory: true,
+      beforeUpload(_, fileList) {
+        let tempPaperList = [];
+        fileList.forEach((item) => {
+          let paths = item.webkitRelativePath.split("/");
+          if (paths.length >= 3 || paths[1] == "papers") {
+            tempPaperList.push({ name: paths[1] + "/" + item.name });
+          }
+        });
+        setPaperList(tempPaperList);
+        return new Promise();
+      },
+      showUploadList: false,
+    };
+    return (
+      <div>
+        <Upload {...props}>
+          <Button icon={<FolderOpenOutlined />}>Import folder</Button>
+        </Upload>
+        <Table dataSource={paperList} columns={paperListColumns} rowKey={record => record.num} />
+      </div>
+    );
+  };
+
+  const [generateStep, setGenerateStep] = React.useState(2);
+  const Generate = () => {
+
+    return (
+      <div>
+        {generateStep > 0 && (
+          <div>
+            <font size="5" color="green">Base information generated successfully!</font>
+          </div>
+        )}
+        {generateStep > 1 && (
+          <div>
+            <font size="5">Upload files to ipfs</font>
+            <Progress type="circle" percent={75} />
+          </div >
+        )}
+      </div >
+    );
+  };
 
   return (
     <div className="main-div">
@@ -86,26 +148,41 @@ const App = () => {
         {current === 0 && (
           <div className="step-body">
             <ReactMarkdown children={InstallIpfsMarkdown}></ReactMarkdown>
-            <Button className="install-ipfs-check-button" type="primary" onClick={() => checkIpfs()}>
-              Check
-            </Button>
+
           </div>
         )}
         {current === 1 && (
           <div className="step-body">
-            <Button icon={<FolderOpenOutlined />} onClick={() => readPapersFolder()}>Select folder</Button>
+            <SelectPapers />
           </div>
         )}
         {current === 2 && (
-          333333333333
+          <div className="step-body">
+            <Generate />
+          </div>
         )}
       </div>
 
       <div className="steps-action">
-        {current < steps.length - 1 && (
-          <Button type="primary" disabled={nextDisable} onClick={() => next()}>
-            Next
-          </Button>
+        {current === 0 && (
+          <div>
+            <Button className="check-button" type="primary" onClick={() => checkIpfs()}>
+              Check
+            </Button>
+            <Button type="primary" disabled={nextDisable} onClick={() => next()}>
+              Next
+            </Button>
+          </div>
+        )}
+        {current === 1 && (
+          <div>
+            <Button className="check-button" type="primary" onClick={() => checkMetadata()}>
+              Check
+            </Button>
+            <Button type="primary" disabled={nextDisable} onClick={() => next()}>
+              Next
+            </Button>
+          </div>
         )}
         {current === steps.length - 1 && (
           <Button type="primary" onClick={() => message.success('Processing complete!')}>
