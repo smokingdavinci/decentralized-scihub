@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
 import 'antd/dist/antd.css';
-import { Steps, Button, Upload, message, Table, Input, Tooltip, Progress } from 'antd';
+import { Steps, Button, Upload, message, Table, Input, Progress } from 'antd';
 import ReactMarkdown from 'react-markdown'
 
 import {
@@ -13,6 +13,7 @@ import {
   UserOutlined,
   KeyOutlined,
   BarcodeOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 
 const { Step } = Steps;
@@ -69,6 +70,14 @@ const App = () => {
     message.success('Metadata is right');
   };
 
+  const IPFSView = () => {
+    return (
+      <div>
+        <ReactMarkdown children={InstallIpfsMarkdown}></ReactMarkdown>
+      </div >
+    );
+  };
+
   const [paperList, setPaperList] = React.useState([]);
   const paperListColumns = [
     {
@@ -90,7 +99,7 @@ const App = () => {
     },
   ];
 
-  const SelectPapers = () => {
+  const SelectPapersView = () => {
     const props = {
       directory: true,
       beforeUpload(_, fileList) {
@@ -116,9 +125,35 @@ const App = () => {
     );
   };
 
-  const [generateStep, setGenerateStep] = React.useState(2);
-  const Generate = () => {
+  const [resultRoot, setResultRoot] = React.useState("");
+  const [resultFiles, setResultFiles] = React.useState([]);
 
+  const checkGenerate = () => {
+    message.info('Generating');
+    setGenerateStep(generateStep + 1);
+    if (generateStep > 1) {
+      setResultRoot("QmVUWhE5n23KtQ8wSTkYhgCaHALDFarfj31SigiNZvmKEc");
+      let rfs = [
+        {
+          name: "DOI1xxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+          content: "1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1"
+        },
+        {
+          name: "DOI2xxxxxxxxxxxxxxxxxxxxxxxxxxxxx2",
+          content: "2xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2"
+        },
+        {
+          name: "meta",
+          content: "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+        },
+      ]
+      setResultFiles(rfs);
+      enableNext();
+    }
+  };
+
+  const [generateStep, setGenerateStep] = React.useState(0);
+  const GenerateView = () => {
     return (
       <div>
         {generateStep > 0 && (
@@ -128,10 +163,39 @@ const App = () => {
         )}
         {generateStep > 1 && (
           <div>
-            <font size="5">Upload files to ipfs</font>
+            <div>
+              <font size="5">Upload files to ipfs:</font>
+            </div>
             <Progress type="circle" percent={75} />
           </div >
         )}
+        {generateStep > 2 && (
+          <div>
+            <font size="5" color="green">Generate result files successfully!</font>
+          </div>
+        )}
+      </div >
+    );
+  };
+
+  const resultFilesColumns = [
+    {
+      title: 'File Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Content',
+      dataIndex: 'content',
+      key: 'content',
+    },
+  ];
+
+  const PRView= () => {
+    return (
+      <div>
+        <font size="5">{resultRoot}</font>
+        <Table dataSource={resultFiles} columns={resultFilesColumns} rowKey={record => record.num} />
       </div >
     );
   };
@@ -147,18 +211,22 @@ const App = () => {
       <div>
         {current === 0 && (
           <div className="step-body">
-            <ReactMarkdown children={InstallIpfsMarkdown}></ReactMarkdown>
-
+            <IPFSView />
           </div>
         )}
         {current === 1 && (
           <div className="step-body">
-            <SelectPapers />
+            <SelectPapersView />
           </div>
         )}
         {current === 2 && (
           <div className="step-body">
-            <Generate />
+            <GenerateView />
+          </div>
+        )}
+        {current === 3 && (
+          <div className="step-body">
+            <PRView />
           </div>
         )}
       </div>
@@ -184,9 +252,19 @@ const App = () => {
             </Button>
           </div>
         )}
+        {current === 2 && (
+          <div>
+            <Button className="check-button" type="primary" onClick={() => checkGenerate()}>
+              Generate
+            </Button>
+            <Button type="primary" disabled={nextDisable} onClick={() => next()}>
+              Next
+            </Button>
+          </div>
+        )}
         {current === steps.length - 1 && (
-          <Button type="primary" onClick={() => message.success('Processing complete!')}>
-            Done
+          <Button type="primary" onClick={() => message.success('Send pull Request')}>
+            Pull Request
           </Button>
         )}
       </div>
