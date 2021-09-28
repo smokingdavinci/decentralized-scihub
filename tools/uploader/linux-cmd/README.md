@@ -36,8 +36,7 @@
     }
 }
 ```
-
-    1. When you have done, execute **genMetadata.sh** script. Then you can get a directory named with 'Qmxxx'
-    1. Copy this 'Qmxxx' directory to **<root_dir>/papers** directory
-    1. Commit a pull_request to [smokingdavinci/decentralized-scihub](https://github.com/smokingdavinci/decentralized-scihub) repo
-    1. Wait for CI complete, check the result which success means your papers has been uploaded in Crust network while error means something wrong with your pull_request
+1. When you have done, execute **genMetadata.sh** script. Then you can get a directory named with 'Qmxxx'
+1. Copy this 'Qmxxx' directory to **<root_dir>/papers** directory
+1. Commit a pull_request to [smokingdavinci/decentralized-scihub](https://github.com/smokingdavinci/decentralized-scihub) repo
+1. Wait for CI complete, check the result which success means your papers has been uploaded in Crust network while error means something wrong with your pull_request
