@@ -1,1 +1,0 @@
-# Macos paper uploader
