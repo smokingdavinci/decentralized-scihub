@@ -2,7 +2,7 @@
 
 ## The Goal
 
-To build an unstoppable SCIHub, We could migrate all the papers into IPFS and capture the index, then develop a mirror page that retrieves all the papers from IPFS. It's very hard to download 80+TB of data and pinning them by one person. It will be very helpful if we could have a co-work with all the paper maintainers and developers.
+To build an unstoppable SCIHub, We could migrate all the papers into IPFS and capture the indexs, then develop a mirror page that retrieves all the papers from IPFS. It's very hard to download 80+TB of data and pinning them by one person. It will be very helpful if we could have a co-work with all the paper maintainers and developers.
 
 ## About This Repo
 

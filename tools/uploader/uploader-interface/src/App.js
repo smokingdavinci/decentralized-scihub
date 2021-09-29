@@ -3,6 +3,7 @@ import React from 'react';
 import 'antd/dist/antd.css';
 import { Steps, Button, Upload, message, Table, Input, Progress } from 'antd';
 import ReactMarkdown from 'react-markdown'
+import overviewImgUrl from './pic/overview.png';
 
 import {
   RadarChartOutlined,
@@ -36,13 +37,6 @@ const steps = [
     icon: <PullRequestOutlined />
   }];
 
-const InstallIpfsMarkdown = `
-## Install
-Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your computer
-## Check
-Click the button to make sure ipfs is running properly
-`
-
 const App = () => {
   const [nextDisable, setNextDisable] = React.useState(true);
   const disableNext = () => {
@@ -56,6 +50,7 @@ const App = () => {
   const next = () => {
     disableNext();
     setCurrent(current + 1);
+    document.documentElement.scrollTop = document.body.scrollTop = 0;
   };
 
   const checkIpfs = () => {
@@ -71,9 +66,23 @@ const App = () => {
   };
 
   const IPFSView = () => {
+    const InstallIpfsMarkdown1 = `
+## Overview
+To build an unstoppable SCIHub, We could migrate all the papers into [IPFS](https://ipfs.io/) and capture the indexs. Different from the centralized storage method, you first need to start an IPFS node locally and store the file in this node, so that the file exists in the P2P network. We will use the [Crust](https://crust.network/) to store files permanently, and the nodes on Crust will pull the files through P2P. After waiting for other nodes to pull the file, the local file can be deleted. This web page will help you through this process.
+`
+
+    const InstallIpfsMarkdown2 = `
+## Install IPFS
+Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your computer.
+
+## Check
+Click the button to make sure ipfs is running properly.
+`
     return (
       <div>
-        <ReactMarkdown children={InstallIpfsMarkdown}></ReactMarkdown>
+        <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown1}</ReactMarkdown>
+        <img className="overview-img" src={overviewImgUrl} />
+        <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown2}</ReactMarkdown>
       </div >
     );
   };
@@ -86,16 +95,16 @@ const App = () => {
       key: 'name',
     },
     {
-      title: 'Title',
+      title: '*Title',
       render: text => <Input prefix={<KeyOutlined />} />
     },
     {
-      title: 'DOI',
+      title: '*DOI',
       render: text => <Input prefix={<BarcodeOutlined />} />
     },
     {
       title: 'Authors',
-      render: text => <Input prefix={<UserOutlined />} />
+      render: text => <Input placeholder="alice;bob" prefix={<UserOutlined />} />
     },
   ];
 
@@ -106,8 +115,8 @@ const App = () => {
         let tempPaperList = [];
         fileList.forEach((item) => {
           let paths = item.webkitRelativePath.split("/");
-          if (paths.length >= 3 || paths[1] == "papers") {
-            tempPaperList.push({ name: paths[1] + "/" + item.name });
+          if (paths.length == 2) {
+            tempPaperList.push({ name: item.name });
           }
         });
         setPaperList(tempPaperList);
@@ -115,11 +124,37 @@ const App = () => {
       },
       showUploadList: false,
     };
+
+    const preparePapersMarkdown1 = `
+## Introduction
+This step will guide you how to organize the articles and help you fill in the metadata related to the articles.
+
+## Prepare files
+First, you need to create a new folder and put the articles you want to upload into the same folder. Please note:
+
+- The number of articles should not exceed 100
+- There can be no other files in the folder
+
+Fill in the absolute path of the folder in the space below:
+`
+    const preparePapersMarkdown2 = `
+## Import folder
+The browser needs to determine the contents of the folder by importing. There is no privacy risk in this step. Please click this link for the open source [code](https://github.com/smokingdavinci/decentralized-scihub). Please select a folder in the import step, and make sure that it is the same as the folder path filled in the previous step:
+`
+
+    const preparePapersMarkdown3 = `
+## Fill metadata
+Please fill in the necessary content of the article in the form below, where Title and DOI are mandatory. Authors should be separated by semicolons:
+`
     return (
       <div>
+        <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown1}</ReactMarkdown>
+        <Input placeholder="Absolute path; example: windows->/c/Users/abc/Desktop, mac->/User/abc/Desktop/papers, linux->/home/abc/Desktop/papers" />
+        <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown2}</ReactMarkdown>
         <Upload {...props}>
           <Button icon={<FolderOpenOutlined />}>Import folder</Button>
         </Upload>
+        <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown3}</ReactMarkdown>
         <Table dataSource={paperList} columns={paperListColumns} rowKey={record => record.num} />
       </div>
     );
@@ -154,8 +189,19 @@ const App = () => {
 
   const [generateStep, setGenerateStep] = React.useState(0);
   const GenerateView = () => {
+    const generateViewMarkdown = `
+## Introduction
+In this step, the program will save the folder to your local IPFS node, please note:
+
+- This will take some time, depending on the performance of the machine
+- Please ensure that the local IPFS node is online
+- The result will be temporarily stored in the memory, please do not close the browser or refresh the page
+
+Click generate below to run the program:
+`
     return (
       <div>
+        <ReactMarkdown linkTarget="_blank">{generateViewMarkdown}</ReactMarkdown>
         {generateStep > 0 && (
           <div>
             <font size="5" color="green">Base information generated successfully!</font>
@@ -191,7 +237,7 @@ const App = () => {
     },
   ];
 
-  const PRView= () => {
+  const PRView = () => {
     return (
       <div>
         <font size="5">{resultRoot}</font>
@@ -264,7 +310,7 @@ const App = () => {
         )}
         {current === steps.length - 1 && (
           <Button type="primary" onClick={() => message.success('Send pull Request')}>
-            Pull Request
+            Save output
           </Button>
         )}
       </div>
