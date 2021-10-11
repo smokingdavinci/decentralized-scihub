@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
 import 'antd/dist/antd.css';
-import { Steps, Button, Upload, message, Table, Input, Progress } from 'antd';
+import { Steps, Button, Upload, message, Table, Input, Progress, Form } from 'antd';
 import ReactMarkdown from 'react-markdown'
 import overviewImgUrl from './pic/overview.png';
 
@@ -49,7 +49,9 @@ const App = () => {
   const [current, setCurrent] = React.useState(0);
   const next = () => {
     disableNext();
-    setCurrent(current + 1);
+    if (current < 3) {
+      setCurrent(current + 1);
+    }
     document.documentElement.scrollTop = document.body.scrollTop = 0;
   };
 
@@ -57,12 +59,6 @@ const App = () => {
     message.info('Checking ipfs');
     enableNext();
     message.success('Ipfs is running');
-  };
-
-  const checkMetadata = () => {
-    message.info('Checking metadata');
-    enableNext();
-    message.success('Metadata is right');
   };
 
   const IPFSView = () => {
@@ -79,15 +75,47 @@ Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on yo
 Click the button to make sure ipfs is running properly.
 `
     return (
-      <div>
-        <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown1}</ReactMarkdown>
-        <img className="overview-img" src={overviewImgUrl} />
-        <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown2}</ReactMarkdown>
-      </div >
+      <>
+        <div className="step-body">
+          <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown1}</ReactMarkdown>
+          <img className="overview-img" src={overviewImgUrl} />
+          <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown2}</ReactMarkdown>
+        </div>
+        <div className="steps-action">
+          <Button className="check-button" type="primary" onClick={() => checkIpfs()}>
+            Check
+          </Button>
+          <Button type="primary" disabled={nextDisable} onClick={() => next()}>
+            Next
+          </Button>
+        </div>
+      </>
     );
   };
 
+  //--------------------------------------------------------//
   const [paperList, setPaperList] = React.useState([]);
+  const [paperMetadataList, setPaperMetadataList] = React.useState([]);
+  const [paperForm] = Form.useForm();
+
+  const checkMetadata = (values) => {
+    message.info('Checking metadata');
+    let path = values["path"];
+    let tempPaperMetadataList = [];
+    let index = 0;
+    paperList.forEach((item) => {
+      tempPaperMetadataList.push({
+        name: item.name,
+        path: path + "/" + item.name,
+        title: values[index].title,
+        doi: values[index].doi,
+        authors: values[index].authors
+      });
+    });
+    setPaperMetadataList(tempPaperMetadataList);
+    enableNext();
+    message.success('Metadata is right');
+  };
   const paperListColumns = [
     {
       title: 'Paper Name',
@@ -95,16 +123,40 @@ Click the button to make sure ipfs is running properly.
       key: 'name',
     },
     {
-      title: '*Title',
-      render: text => <Input prefix={<KeyOutlined />} />
+      title: '* Title',
+      dataIndex: 'title',
+      key: 'title',
+      render: (value, row, index) => {
+        return (
+          <Form.Item name={[index, "title"]} rules={[{ required: true, },]} style={{ marginTop: 25 }}>
+            <Input placeholder="abc" prefix={<KeyOutlined />} />
+          </Form.Item>
+        );
+      }
     },
     {
-      title: '*DOI',
-      render: text => <Input prefix={<BarcodeOutlined />} />
+      title: '* DOI',
+      dataIndex: 'doi',
+      key: 'doi',
+      render: (value, row, index) => {
+        return (
+          <Form.Item name={[index, "doi"]} rules={[{ required: true, },]} style={{ marginTop: 25 }}>
+            <Input placeholder="doi" prefix={<BarcodeOutlined />} />
+          </Form.Item>
+        );
+      }
     },
     {
-      title: 'Authors',
-      render: text => <Input placeholder="alice;bob" prefix={<UserOutlined />} />
+      title: '* Authors',
+      dataIndex: 'authors',
+      key: 'authors',
+      render: (value, row, index) => {
+        return (
+          <Form.Item name={[index, "authors"]} rules={[{ required: true, },]} style={{ marginTop: 25 }}>
+            <Input placeholder="alice;bob" prefix={<UserOutlined />} />
+          </Form.Item>
+        );
+      }
     },
   ];
 
@@ -147,19 +199,36 @@ The browser needs to determine the contents of the folder by importing. There is
 Please fill in the necessary content of the article in the form below, where Title and DOI are mandatory. Authors should be separated by semicolons:
 `
     return (
-      <div>
-        <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown1}</ReactMarkdown>
-        <Input placeholder="Absolute path; example: windows->/c/Users/abc/Desktop, mac->/User/abc/Desktop/papers, linux->/home/abc/Desktop/papers" />
-        <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown2}</ReactMarkdown>
-        <Upload {...props}>
-          <Button icon={<FolderOpenOutlined />}>Import folder</Button>
-        </Upload>
-        <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown3}</ReactMarkdown>
-        <Table dataSource={paperList} columns={paperListColumns} rowKey={record => record.num} />
-      </div>
+      <Form form={paperForm} onFinish={checkMetadata}>
+        <>
+          <div className="step-body">
+            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown1}</ReactMarkdown>
+            <Form.Item name="path" rules={[{ required: true, },]}>
+              <Input placeholder="Absolute path; example: windows->/c/Users/abc/Desktop, mac->/User/abc/Desktop/papers, linux->/home/abc/Desktop/papers" />
+            </Form.Item>
+            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown2}</ReactMarkdown>
+            <Upload {...props}>
+              <Button icon={<FolderOpenOutlined />}>Import folder</Button>
+            </Upload>
+            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown3}</ReactMarkdown>
+            <Table dataSource={paperList} columns={paperListColumns} pagination={false} rowKey={record => record.num} />
+          </div>
+          <div className="steps-action">
+            <Form.Item >
+              <Button className="check-button" type="primary" htmlType="submit" >
+                Check
+              </Button>
+              <Button type="primary" disabled={nextDisable} onClick={() => next()}>
+                Next
+              </Button>
+            </Form.Item>
+          </div>
+        </>
+      </Form>
     );
   };
 
+  //--------------------------------------------------------//
   const [resultRoot, setResultRoot] = React.useState("");
   const [resultFiles, setResultFiles] = React.useState([]);
 
@@ -198,29 +267,39 @@ In this step, the program will save the folder to your local IPFS node, please n
 - The result will be temporarily stored in the memory, please do not close the browser or refresh the page
 
 Click generate below to run the program:
-`
+ `
     return (
-      <div>
-        <ReactMarkdown linkTarget="_blank">{generateViewMarkdown}</ReactMarkdown>
-        {generateStep > 0 && (
-          <div>
-            <font size="5" color="green">Base information generated successfully!</font>
-          </div>
-        )}
-        {generateStep > 1 && (
-          <div>
+      <>
+        <div className="step-body">
+          <ReactMarkdown linkTarget="_blank">{generateViewMarkdown}</ReactMarkdown>
+          {generateStep > 0 && (
             <div>
-              <font size="5">Upload files to ipfs:</font>
+              <font size="5" color="green">Base information generated successfully!</font>
             </div>
-            <Progress type="circle" percent={75} />
-          </div >
-        )}
-        {generateStep > 2 && (
-          <div>
-            <font size="5" color="green">Generate result files successfully!</font>
-          </div>
-        )}
-      </div >
+          )}
+          {generateStep > 1 && (
+            <div>
+              <div>
+                <font size="5">Upload files to ipfs:</font>
+              </div>
+              <Progress type="circle" percent={75} />
+            </div >
+          )}
+          {generateStep > 2 && (
+            <div>
+              <font size="5" color="green">Generate result files successfully!</font>
+            </div>
+          )}
+        </div >
+        <div className="steps-action">
+          <Button className="check-button" type="primary" onClick={() => checkGenerate()}>
+            Generate
+          </Button>
+          <Button type="primary" disabled={nextDisable} onClick={() => next()}>
+            Next
+          </Button>
+        </div>
+      </>
     );
   };
 
@@ -239,10 +318,17 @@ Click generate below to run the program:
 
   const PRView = () => {
     return (
-      <div>
-        <font size="5">{resultRoot}</font>
-        <Table dataSource={resultFiles} columns={resultFilesColumns} rowKey={record => record.num} />
-      </div >
+      <>
+        <div className="step-body">
+          <font size="5">{resultRoot}</font>
+          <Table dataSource={resultFiles} columns={resultFilesColumns} rowKey={record => record.num} />
+        </div >
+        <div className="steps-action">
+          <Button type="primary" onClick={() => message.success('Save')}>
+            Save output
+          </Button>
+        </div>
+      </>
     );
   };
 
@@ -253,66 +339,11 @@ Click generate below to run the program:
           <Step key={item} title={item.title} icon={item.icon} />
         ))}
       </Steps>
-
       <div>
-        {current === 0 && (
-          <div className="step-body">
-            <IPFSView />
-          </div>
-        )}
-        {current === 1 && (
-          <div className="step-body">
-            <SelectPapersView />
-          </div>
-        )}
-        {current === 2 && (
-          <div className="step-body">
-            <GenerateView />
-          </div>
-        )}
-        {current === 3 && (
-          <div className="step-body">
-            <PRView />
-          </div>
-        )}
-      </div>
-
-      <div className="steps-action">
-        {current === 0 && (
-          <div>
-            <Button className="check-button" type="primary" onClick={() => checkIpfs()}>
-              Check
-            </Button>
-            <Button type="primary" disabled={nextDisable} onClick={() => next()}>
-              Next
-            </Button>
-          </div>
-        )}
-        {current === 1 && (
-          <div>
-            <Button className="check-button" type="primary" onClick={() => checkMetadata()}>
-              Check
-            </Button>
-            <Button type="primary" disabled={nextDisable} onClick={() => next()}>
-              Next
-            </Button>
-          </div>
-        )}
-        {current === 2 && (
-          <div>
-            <Button className="check-button" type="primary" onClick={() => checkGenerate()}>
-              Generate
-            </Button>
-            <Button type="primary" disabled={nextDisable} onClick={() => next()}>
-              Next
-            </Button>
-          </div>
-        )}
-        {current === steps.length - 1 && (
-          <Button type="primary" onClick={() => message.success('Send pull Request')}>
-            Save output
-          </Button>
-        )}
+        {current === 0 && (<IPFSView />)}
+        {current === 1 && (<SelectPapersView />)}
+        {current === 2 && (<GenerateView />)}
+        {current === 3 && (<PRView />)}
       </div>
     </div>
   );
