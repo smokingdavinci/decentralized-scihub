@@ -2,8 +2,10 @@ import './App.css';
 import React from 'react';
 import 'antd/dist/antd.css';
 import { Steps, Button, Upload, message, Table, Input, Progress, Form } from 'antd';
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from 'react-markdown';
 import overviewImgUrl from './pic/overview.png';
+import FileSaver from 'file-saver';
+import JsZip from 'jszip'
 
 import {
   RadarChartOutlined,
@@ -316,6 +318,29 @@ Click generate below to run the program:
     },
   ];
 
+  const downloadFile = () => {
+    let data1 = {
+      name: "hanmeimei",
+      age: 88
+    }
+    let content1 = JSON.stringify(data1);
+    let blob1 = new Blob([content1], { type: "text/plain;charset=utf-8" });
+
+    let data2 = {
+      name: "sdgahgdshsadg",
+      age: 1231
+    }
+    let content2 = JSON.stringify(data2);
+    let blob2 = new Blob([content2], { type: "text/plain;charset=utf-8" });
+
+    const zip = new JsZip
+    zip.file('blob1.txt', blob1);
+    zip.file('blob2.txt', blob2);
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      FileSaver.saveAs(content, 'test.zip');
+    });
+  };
+
   const PRView = () => {
     return (
       <>
@@ -324,7 +349,7 @@ Click generate below to run the program:
           <Table dataSource={resultFiles} columns={resultFilesColumns} rowKey={record => record.num} />
         </div >
         <div className="steps-action">
-          <Button type="primary" onClick={() => message.success('Save')}>
+          <Button type="primary" onClick={() => downloadFile()}>
             Save output
           </Button>
         </div>
