@@ -4,6 +4,7 @@ import 'antd/dist/antd.css';
 import { Steps, Button, Upload, message, Table, Input, Progress, Form } from 'antd';
 import ReactMarkdown from 'react-markdown'
 import overviewImgUrl from './pic/overview.png';
+import { create } from 'ipfs-http-client'
 
 import {
   RadarChartOutlined,
@@ -61,6 +62,27 @@ const App = () => {
     message.success('Ipfs is running');
   };
 
+  const IPFSAddFiles = async (files) => {
+    const client = create('http://127.0.0.1:5001')
+    const addOptions = {
+      pin: true,
+      wrapWithDirectory: true,
+    }
+    let rootCid = ''
+    let res = {}
+    for await (const item of client.addAll(files, addOptions))
+    {
+      rootCid = item.cid.toString()
+      console.log(item)
+      res[item.path] = {
+        cid: rootCid,
+        size: item.size
+      }
+    }
+    message.info(rootCid)
+    return res
+  }
+
   const IPFSView = () => {
     const InstallIpfsMarkdown1 = `
 ## Overview
@@ -94,15 +116,24 @@ Click the button to make sure ipfs is running properly.
   };
 
   //--------------------------------------------------------//
+  const [addFiles, setAddFiles] = React.useState([]);
   const [paperList, setPaperList] = React.useState([]);
   const [paperMetadataList, setPaperMetadataList] = React.useState([]);
   const [paperForm] = Form.useForm();
+  const [outputFiles, setOutputFiles] = React.useState({})
 
-  const checkMetadata = (values) => {
+  const checkMetadata = async (values) => {
     message.info('Checking metadata');
     let path = values["path"];
     let tempPaperMetadataList = [];
+    let metaInfo = {};
     let index = 0;
+    let addedInfo = await IPFSAddFiles(addFiles)
+    metaInfo = {
+      meta: {
+        links: []
+      }
+    }
     paperList.forEach((item) => {
       tempPaperMetadataList.push({
         name: item.name,
@@ -111,7 +142,25 @@ Click the button to make sure ipfs is running properly.
         doi: values[index].doi,
         authors: values[index].authors
       });
+      metaInfo[values[index].doi] = {
+        cid: addedInfo[item.name]['cid'],
+        size: addedInfo[item.name]['size'],
+        path: item.name,
+        meta: {
+          title: values[index].title,
+          doi: values[index].doi,
+          authors: values[index].authors
+        }
+      }
+      metaInfo['meta']['links'].push({
+        cid: addedInfo[item.name]['cid'],
+        doi: values[index].doi,
+      })
+      index++
     });
+    metaInfo['meta']['cid'] = addedInfo['']['cid']
+    metaInfo['meta']['size'] = addedInfo['']['size']
+    console.log(metaInfo)
     setPaperMetadataList(tempPaperMetadataList);
     enableNext();
     message.success('Metadata is right');
@@ -165,12 +214,15 @@ Click the button to make sure ipfs is running properly.
       directory: true,
       beforeUpload(_, fileList) {
         let tempPaperList = [];
+        let tempAddFiles = []
         fileList.forEach((item) => {
           let paths = item.webkitRelativePath.split("/");
-          if (paths.length == 2) {
+          if (paths.length === 2) {
             tempPaperList.push({ name: item.name });
+            tempAddFiles.push({path:item.name, content:item})
           }
         });
+        setAddFiles(tempAddFiles)
         setPaperList(tempPaperList);
         return new Promise();
       },
