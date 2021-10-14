@@ -12,12 +12,11 @@ import {
   RadarChartOutlined,
   EditOutlined,
   CalculatorOutlined,
-  PullRequestOutlined,
+  ArrowDownOutlined,
   FolderOpenOutlined,
   UserOutlined,
   KeyOutlined,
   BarcodeOutlined,
-  FileTextOutlined,
 } from '@ant-design/icons';
 
 const { Step } = Steps;
@@ -36,8 +35,8 @@ const steps = [
     icon: <CalculatorOutlined />
   },
   {
-    title: 'Pull request',
-    icon: <PullRequestOutlined />
+    title: 'Output',
+    icon: <ArrowDownOutlined />
   }];
 
 const App = () => {
@@ -58,31 +57,16 @@ const App = () => {
     document.documentElement.scrollTop = document.body.scrollTop = 0;
   };
 
-  const checkIpfs = () => {
-    message.info('Checking ipfs');
-    enableNext();
-    message.success('Ipfs is running');
+  const checkIpfs = async () => {
+    try {
+      const client = create('http://127.0.0.1:5001')
+      await client.version();
+      message.success('Ipfs is running');
+      enableNext();
+    } catch (error) {
+      message.error('Ipfs is offline');
+    }
   };
-
-  const IPFSAddFiles = async (files) => {
-    const client = create('http://127.0.0.1:5001')
-    const addOptions = {
-      pin: true,
-      wrapWithDirectory: true,
-    }
-    let rootCid = ''
-    let res = {}
-    for await (const item of client.addAll(files, addOptions))
-    {
-      rootCid = item.cid.toString()
-      res[item.path] = {
-        cid: rootCid,
-        size: item.size
-      }
-    }
-    message.info(`Generated folder cid ${rootCid}`)
-    return res
-  }
 
   const IPFSView = () => {
     const InstallIpfsMarkdown1 = `
@@ -117,61 +101,22 @@ Click the button to make sure ipfs is running properly.
   };
 
   //--------------------------------------------------------//
-  const [addFiles, setAddFiles] = React.useState([]);
   const [paperList, setPaperList] = React.useState([]);
   const [paperMetadataList, setPaperMetadataList] = React.useState([]);
   const [paperForm] = Form.useForm();
-  const [metaInfo, setMetaInfo] = React.useState({})
 
-  const checkMetadata = async (values) => {
+  const checkMetadata = (values) => {
     message.info('Checking metadata');
-    let path = values["path"];
-    let tempPaperMetadataList = [];
-    let tempMetaInfo = {};
-    let index = 0;
-    let addedInfo = await IPFSAddFiles(addFiles)
-    tempMetaInfo = {
-      meta: {
-        links: []
-      }
-    }
-    paperList.forEach((item) => {
-      tempPaperMetadataList.push({
-        name: item.name,
-        path: path + "/" + item.name,
-        title: values[index].title,
-        doi: values[index].doi,
-        authors: values[index].authors
-      });
-      tempMetaInfo[values[index].doi] = {
-        cid: addedInfo[item.name]['cid'],
-        size: addedInfo[item.name]['size'],
-        path: item.name,
-        meta: {
-          title: values[index].title,
-          doi: values[index].doi,
-          authors: values[index].authors
-        }
-      }
-      tempMetaInfo['meta']['links'].push({
-        cid: addedInfo[item.name]['cid'],
-        doi: values[index].doi,
-      })
-      index++
-    });
-    tempMetaInfo['meta']['cid'] = addedInfo['']['cid']
-    tempMetaInfo['meta']['size'] = addedInfo['']['size']
-    console.log(tempMetaInfo)
-    setMetaInfo(tempMetaInfo)
-    setPaperMetadataList(tempPaperMetadataList);
+    setPaperMetadataList(values);
     enableNext();
     message.success('Metadata is right');
   };
+
   const paperListColumns = [
     {
       title: 'Paper Name',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'path',
+      key: 'path',
     },
     {
       title: '* Title',
@@ -216,16 +161,14 @@ Click the button to make sure ipfs is running properly.
       directory: true,
       beforeUpload(_, fileList) {
         let tempPaperList = [];
-        let tempAddFiles = []
         fileList.forEach((item) => {
           let paths = item.webkitRelativePath.split("/");
           if (paths.length === 2) {
-            tempPaperList.push({ name: item.name });
-            tempAddFiles.push({path:item.name, content:item})
+            tempPaperList.push({ path: item.name, content: item });
           }
         });
-        setAddFiles(tempAddFiles)
         setPaperList(tempPaperList);
+        disableNext();
         return new Promise();
       },
       showUploadList: false,
@@ -241,14 +184,10 @@ First, you need to create a new folder and put the articles you want to upload i
 - The number of articles should not exceed 100
 - There can be no other files in the folder
 
-Fill in the absolute path of the folder in the space below:
+## Import folder
+The browser needs to determine the contents of the folder by importing. There is no privacy risk in this step. Please click this link for the open source [code](https://github.com/smokingdavinci/decentralized-scihub). Please select a folder in the import step:
 `
     const preparePapersMarkdown2 = `
-## Import folder
-The browser needs to determine the contents of the folder by importing. There is no privacy risk in this step. Please click this link for the open source [code](https://github.com/smokingdavinci/decentralized-scihub). Please select a folder in the import step, and make sure that it is the same as the folder path filled in the previous step:
-`
-
-    const preparePapersMarkdown3 = `
 ## Fill metadata
 Please fill in the necessary content of the article in the form below, where Title and DOI are mandatory. Authors should be separated by semicolons:
 `
@@ -257,14 +196,10 @@ Please fill in the necessary content of the article in the form below, where Tit
         <>
           <div className="step-body">
             <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown1}</ReactMarkdown>
-            <Form.Item name="path" rules={[{ required: true, },]}>
-              <Input placeholder="Absolute path; example: windows->/c/Users/abc/Desktop, mac->/User/abc/Desktop/papers, linux->/home/abc/Desktop/papers" />
-            </Form.Item>
-            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown2}</ReactMarkdown>
             <Upload {...props}>
               <Button icon={<FolderOpenOutlined />}>Import folder</Button>
             </Upload>
-            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown3}</ReactMarkdown>
+            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown2}</ReactMarkdown>
             <Table dataSource={paperList} columns={paperListColumns} pagination={false} rowKey={record => record.num} />
           </div>
           <div className="steps-action">
@@ -285,32 +220,76 @@ Please fill in the necessary content of the article in the form below, where Tit
   //--------------------------------------------------------//
   const [resultRoot, setResultRoot] = React.useState("");
   const [resultFiles, setResultFiles] = React.useState([]);
+  const [ipfsUploadPercentage, setIpfsUploadPercentage] = React.useState(0);
 
-  const checkGenerate = () => {
-    message.info('Generating');
-    setGenerateStep(generateStep + 1);
-    if (generateStep > 1) {
-      setResultRoot("QmVUWhE5n23KtQ8wSTkYhgCaHALDFarfj31SigiNZvmKEc");
-      let rfs = [
-        {
-          name: "DOI1xxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-          content: "1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1"
-        },
-        {
-          name: "DOI2xxxxxxxxxxxxxxxxxxxxxxxxxxxxx2",
-          content: "2xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2"
-        },
-        {
-          name: "meta",
-          content: "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
-        },
-      ]
-      setResultFiles(rfs);
-      enableNext();
+  const ipfsAddFiles = async (files) => {
+    const client = create('http://127.0.0.1:5001')
+    let rootCid = ''
+    let res = {}
+    let dirCid = await client.object.new({
+      template: 'unixfs-dir'
+    })
+    let finshedIpfsUpload = 0;
+    for (let i = 0; i < files.length; i++) {
+      const item = await client.add(files[i])
+      const cid = item.cid.toString()
+      res[item.path] = {
+        cid: cid,
+        size: item.size
+      }
+      dirCid = await client.object.patch.addLink(dirCid, {
+        name: item.path,
+        size: item.size,
+        cid: cid
+      })
+      finshedIpfsUpload += 100;
+      setIpfsUploadPercentage(finshedIpfsUpload / paperList.length);
     }
+    rootCid = dirCid.toString()
+    const dirStat = await client.object.stat(rootCid)
+    res[''] = {
+      cid: rootCid,
+      size: dirStat['CumulativeSize']
+    }
+    return res
+  }
+
+  const checkGenerate = async () => {
+    // Upload files to ipfs
+    let ipfsRes = await ipfsAddFiles(paperList);
+
+    // Get output
+    let tempMetaInfo = {
+      cid: ipfsRes['']['cid'],
+      size: ipfsRes['']['size'],
+      links: [],
+    };
+    let tempResultFiles = [];
+    let index = 0;
+
+    paperList.forEach((item) => {
+      let tempDoiFileList = {
+        cid: ipfsRes[item.path]['cid'],
+        size: ipfsRes[item.path]['size'],
+        doi: paperMetadataList[index].doi,
+        path: item.path,
+        title: paperMetadataList[index].title,
+        authors: paperMetadataList[index].authors
+      };
+      tempMetaInfo.links.push({
+        cid: ipfsRes[item.path]['cid'],
+        doi: paperMetadataList[index].doi
+      });
+      tempResultFiles.push({ path: tempDoiFileList['doi'], content: JSON.stringify(tempDoiFileList) });
+      index++
+    });
+
+    tempResultFiles.push({ path: 'meta', content: JSON.stringify(tempMetaInfo) });
+    setResultFiles(tempResultFiles);
+    setResultRoot(tempMetaInfo.cid);
+    enableNext();
   };
 
-  const [generateStep, setGenerateStep] = React.useState(0);
   const GenerateView = () => {
     const generateViewMarkdown = `
 ## Introduction
@@ -326,24 +305,7 @@ Click generate below to run the program:
       <>
         <div className="step-body">
           <ReactMarkdown linkTarget="_blank">{generateViewMarkdown}</ReactMarkdown>
-          {generateStep > 0 && (
-            <div>
-              <font size="5" color="green">Base information generated successfully!</font>
-            </div>
-          )}
-          {generateStep > 1 && (
-            <div>
-              <div>
-                <font size="5">Upload files to ipfs:</font>
-              </div>
-              <Progress type="circle" percent={75} />
-            </div >
-          )}
-          {generateStep > 2 && (
-            <div>
-              <font size="5" color="green">Generate result files successfully!</font>
-            </div>
-          )}
+          <Progress type="circle" percent={ipfsUploadPercentage} />
         </div >
         <div className="steps-action">
           <Button className="check-button" type="primary" onClick={() => checkGenerate()}>
@@ -360,8 +322,8 @@ Click generate below to run the program:
   const resultFilesColumns = [
     {
       title: 'File Name',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'path',
+      key: 'path',
     },
     {
       title: 'Content',
@@ -371,40 +333,26 @@ Click generate below to run the program:
   ];
 
   const downloadFile = () => {
-    let data1 = {
-      name: "hanmeimei",
-      age: 88
-    }
-    let content1 = JSON.stringify(data1);
-    let blob1 = new Blob([content1], { type: "text/plain;charset=utf-8" });
-
-    let data2 = {
-      name: "sdgahgdshsadg",
-      age: 1231
-    }
-    let content2 = JSON.stringify(data2);
-    let blob2 = new Blob([content2], { type: "text/plain;charset=utf-8" });
-
     const zip = new JsZip
-    zip.file('blob1.txt', blob1);
-    zip.file('blob2.txt', blob2);
+    resultFiles.forEach((item) => {
+      let blob = new Blob([item.content], { type: "text/plain;charset=utf-8" });
+      zip.file(item.path, blob);
+    });
     zip.generateAsync({ type: "blob" }).then(function (content) {
-      FileSaver.saveAs(content, 'test.zip');
+      FileSaver.saveAs(content, resultRoot);
     });
   };
 
-  const PRView = () => {
+  const OutputView = () => {
     return (
       <>
         <div className="step-body">
-          <font size="5">{resultRoot}</font>
-          <Table dataSource={resultFiles} columns={resultFilesColumns} rowKey={record => record.num} />
-        </div >
-        <div className="steps-action">
-          <Button type="primary" onClick={() => downloadFile()}>
+          <font size="5">All papers root: {resultRoot}</font>
+          <Button className="output-button" type="primary" onClick={() => downloadFile()}>
             Save output
           </Button>
-        </div>
+          <Table dataSource={resultFiles} columns={resultFilesColumns} pagination={false} rowKey={record => record.num} />
+        </div >
       </>
     );
   };
@@ -420,7 +368,7 @@ Click generate below to run the program:
         {current === 0 && (<IPFSView />)}
         {current === 1 && (<SelectPapersView />)}
         {current === 2 && (<GenerateView />)}
-        {current === 3 && (<PRView />)}
+        {current === 3 && (<OutputView />)}
       </div>
     </div>
   );
