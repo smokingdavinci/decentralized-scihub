@@ -73,13 +73,12 @@ const App = () => {
     for await (const item of client.addAll(files, addOptions))
     {
       rootCid = item.cid.toString()
-      console.log(item)
       res[item.path] = {
         cid: rootCid,
         size: item.size
       }
     }
-    message.info(rootCid)
+    message.info(`Generated folder cid ${rootCid}`)
     return res
   }
 
@@ -120,16 +119,16 @@ Click the button to make sure ipfs is running properly.
   const [paperList, setPaperList] = React.useState([]);
   const [paperMetadataList, setPaperMetadataList] = React.useState([]);
   const [paperForm] = Form.useForm();
-  const [outputFiles, setOutputFiles] = React.useState({})
+  const [metaInfo, setMetaInfo] = React.useState({})
 
   const checkMetadata = async (values) => {
     message.info('Checking metadata');
     let path = values["path"];
     let tempPaperMetadataList = [];
-    let metaInfo = {};
+    let tempMetaInfo = {};
     let index = 0;
     let addedInfo = await IPFSAddFiles(addFiles)
-    metaInfo = {
+    tempMetaInfo = {
       meta: {
         links: []
       }
@@ -142,7 +141,7 @@ Click the button to make sure ipfs is running properly.
         doi: values[index].doi,
         authors: values[index].authors
       });
-      metaInfo[values[index].doi] = {
+      tempMetaInfo[values[index].doi] = {
         cid: addedInfo[item.name]['cid'],
         size: addedInfo[item.name]['size'],
         path: item.name,
@@ -152,15 +151,16 @@ Click the button to make sure ipfs is running properly.
           authors: values[index].authors
         }
       }
-      metaInfo['meta']['links'].push({
+      tempMetaInfo['meta']['links'].push({
         cid: addedInfo[item.name]['cid'],
         doi: values[index].doi,
       })
       index++
     });
-    metaInfo['meta']['cid'] = addedInfo['']['cid']
-    metaInfo['meta']['size'] = addedInfo['']['size']
-    console.log(metaInfo)
+    tempMetaInfo['meta']['cid'] = addedInfo['']['cid']
+    tempMetaInfo['meta']['size'] = addedInfo['']['size']
+    console.log(tempMetaInfo)
+    setMetaInfo(tempMetaInfo)
     setPaperMetadataList(tempPaperMetadataList);
     enableNext();
     message.success('Metadata is right');
