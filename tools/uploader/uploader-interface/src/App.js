@@ -4,6 +4,7 @@ import 'antd/dist/antd.css';
 import { Steps, Button, Upload, message, Table, Input, Progress, Form } from 'antd';
 import ReactMarkdown from 'react-markdown';
 import overviewImgUrl from './pic/overview.png';
+import outputImgUrl from './pic/output.png';
 import FileSaver from 'file-saver';
 import JsZip from 'jszip'
 import { create } from 'ipfs-http-client'
@@ -64,21 +65,56 @@ const App = () => {
       message.success('Ipfs is running');
       enableNext();
     } catch (error) {
+      disableNext();
       message.error('Ipfs is offline');
     }
   };
 
   const IPFSView = () => {
     const InstallIpfsMarkdown1 = `
-## Overview
+## 1 Overview
 To build an unstoppable SCIHub, We could migrate all the papers into [IPFS](https://ipfs.io/) and capture the indexs. Different from the centralized storage method, you first need to start an IPFS node locally and store the file in this node, so that the file exists in the P2P network. We will use the [Crust](https://crust.network/) to store files permanently, and the nodes on Crust will pull the files through P2P. After waiting for other nodes to pull the file, the local file can be deleted. This web page will help you through this process.
 `
 
     const InstallIpfsMarkdown2 = `
-## Install IPFS
+## 2 Install IPFS
 Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your computer.
 
-## Check
+## 3 Allow cross-origin
+Make sure you have configured to allow [cross-origin(CORS) requests](https://github.com/ipfs/ipfs-webui#configure-ipfs-api-cors-headers). If not, run following commands and then **restart IPFS daemon or IPFS desktop**:
+
+3.1 Desktop
+
+Open the IPFS Desktop, enter the settings interface, change the API part of the IPFS CONFIG as shown below, and restart the software
+\`\`\`
+"API": {
+  "HTTPHeaders": {
+    "Access-Control-Allow-Methods": [
+      "PUT",
+      "POST"
+    ],
+    "Access-Control-Allow-Origin": ["*"]
+  }
+}
+\`\`\`
+
+3.2 CMD
+
+Windows CMD
+\`\`\`
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "["""*"""]"
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods "["""PUT""", """POST"""]"
+\`\`\`
+
+Or Linux & MACOS:
+\`\`\`
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'
+\`\`\`
+
+
+
+## 4. Check
 Click the button to make sure ipfs is running properly.
 `
     return (
@@ -106,10 +142,35 @@ Click the button to make sure ipfs is running properly.
   const [paperForm] = Form.useForm();
 
   const checkMetadata = (values) => {
-    message.info('Checking metadata');
-    setPaperMetadataList(values);
-    enableNext();
-    message.success('Metadata is right');
+    if (values[0] === undefined) {
+      disableNext();
+      message.error('Please import papers');
+    } else {
+      if (values[100] != undefined) {
+        disableNext();
+        message.error('The number of papers should not exceed 100');
+      } else {
+        let dois = {};
+        let ts = {};
+        for (let i in values) {
+          if (dois[values[i].doi]) {
+            disableNext();
+            message.error("The doi '" + values[i].doi + "' is repeated");
+            return;
+          }
+          if (ts[values[i].title]) {
+            message.error("The title '" + values[i].title + "' is repeated");
+            disableNext();
+            return;
+          }
+          dois[values[i].doi] = true;
+          ts[values[i].title] = true;
+        }
+        setPaperMetadataList(values);
+        enableNext();
+        message.success('Metadata is right');
+      }
+    }
   };
 
   const paperListColumns = [
@@ -176,12 +237,12 @@ Click the button to make sure ipfs is running properly.
 
     const preparePapersMarkdown1 = `
 ## Introduction
-This step will guide you how to organize the articles and help you fill in the metadata related to the articles.
+This step will guide you how to organize the papers and help you fill in the metadata related to the papers.
 
 ## Prepare files
-First, you need to create a new folder and put the articles you want to upload into the same folder. Please note:
+First, you need to create a new folder and put the papers you want to upload into the same folder. Please note:
 
-- The number of articles should not exceed 100
+- The number of papers should not exceed 100
 - There can be no other files in the folder
 
 ## Import folder
@@ -189,7 +250,7 @@ The browser needs to determine the contents of the folder by importing. There is
 `
     const preparePapersMarkdown2 = `
 ## Fill metadata
-Please fill in the necessary content of the article in the form below, where Title and DOI are mandatory. Authors should be separated by semicolons:
+Please fill in the necessary content of the paper in the form below, where Title and DOI are mandatory. Authors should be separated by semicolons:
 `
     return (
       <Form form={paperForm} onFinish={checkMetadata}>
@@ -221,6 +282,7 @@ Please fill in the necessary content of the article in the form below, where Tit
   const [resultRoot, setResultRoot] = React.useState("");
   const [resultFiles, setResultFiles] = React.useState([]);
   const [ipfsUploadPercentage, setIpfsUploadPercentage] = React.useState(0);
+  const [nowUploadPaper, setNowUploadPaper] = React.useState("Not start");
 
   const ipfsAddFiles = async (files) => {
     const client = create('http://127.0.0.1:5001')
@@ -231,6 +293,7 @@ Please fill in the necessary content of the article in the form below, where Tit
     })
     let finshedIpfsUpload = 0;
     for (let i = 0; i < files.length; i++) {
+      setNowUploadPaper(files[i].path);
       const item = await client.add(files[i])
       const cid = item.cid.toString()
       res[item.path] = {
@@ -256,7 +319,14 @@ Please fill in the necessary content of the article in the form below, where Tit
 
   const checkGenerate = async () => {
     // Upload files to ipfs
-    let ipfsRes = await ipfsAddFiles(paperList);
+    let ipfsRes = undefined;
+    try {
+      ipfsRes = await ipfsAddFiles(paperList);
+    } catch (error) {
+      message.error('Ipfs is offline');
+      return
+    }
+    setNowUploadPaper("Upload to local IPFS successfully!");
 
     // Get output
     let tempMetaInfo = {
@@ -305,7 +375,8 @@ Click generate below to run the program:
       <>
         <div className="step-body">
           <ReactMarkdown linkTarget="_blank">{generateViewMarkdown}</ReactMarkdown>
-          <Progress type="circle" percent={ipfsUploadPercentage} />
+          <Progress percent={ipfsUploadPercentage} />
+          <p className="blue-text">Status: {nowUploadPaper}</p>
         </div >
         <div className="steps-action">
           <Button className="check-button" type="primary" onClick={() => checkGenerate()}>
@@ -332,6 +403,25 @@ Click generate below to run the program:
     },
   ];
 
+  const dowloadViewMarkdown1 = `
+## 1 Download output
+Check the output content and click the download button to download the compressed package composed of the output files.
+
+## 2 Send pull request
+- Fork the [decentralized-scihub](https://github.com/smokingdavinci/decentralized-scihub) repository.
+- Clone your repository and unzip the output files and put it in the papers folder, the following is an example:
+`
+
+  const dowloadViewMarkdown2 = `
+- Create new branch and send pull request
+
+## 3 Wait CI pass (DO NOT CLOSE IPFS)
+After the PR is issued, the background CI will store the papers on Crust. This will take some time, usually around 1 hour to 2 hours.
+
+During this process, other IPFS nodes will pull files from the local machine. **Please ensure that the local network is smooth and keep the local IPFS online.** When the number of copies reaches a certain number, CI can be passed, which means that the papers is stored successfully.
+
+## 4 Output information
+`
   const downloadFile = () => {
     const zip = new JsZip
     resultFiles.forEach((item) => {
@@ -347,7 +437,10 @@ Click generate below to run the program:
     return (
       <>
         <div className="step-body">
-          <font size="5">All papers root: {resultRoot}</font>
+          <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown1}</ReactMarkdown>
+          <img className="overview-img" src={outputImgUrl} />
+          <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown2}</ReactMarkdown>
+          <font size="4">Root: {resultRoot}</font>
           <Button className="output-button" type="primary" onClick={() => downloadFile()}>
             Save output
           </Button>
