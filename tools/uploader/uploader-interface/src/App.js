@@ -2,20 +2,22 @@ import './App.css';
 import React from 'react';
 import 'antd/dist/antd.css';
 import { Steps, Button, Upload, message, Table, Input, Progress, Form } from 'antd';
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from 'react-markdown';
 import overviewImgUrl from './pic/overview.png';
+import outputImgUrl from './pic/output.png';
+import FileSaver from 'file-saver';
+import JsZip from 'jszip'
 import { create } from 'ipfs-http-client'
 
 import {
   RadarChartOutlined,
   EditOutlined,
   CalculatorOutlined,
-  PullRequestOutlined,
+  ArrowDownOutlined,
   FolderOpenOutlined,
   UserOutlined,
   KeyOutlined,
   BarcodeOutlined,
-  FileTextOutlined,
 } from '@ant-design/icons';
 
 const { Step } = Steps;
@@ -34,8 +36,8 @@ const steps = [
     icon: <CalculatorOutlined />
   },
   {
-    title: 'Pull request',
-    icon: <PullRequestOutlined />
+    title: 'Output',
+    icon: <ArrowDownOutlined />
   }];
 
 const App = () => {
@@ -56,43 +58,63 @@ const App = () => {
     document.documentElement.scrollTop = document.body.scrollTop = 0;
   };
 
-  const checkIpfs = () => {
-    message.info('Checking ipfs');
-    enableNext();
-    message.success('Ipfs is running');
+  const checkIpfs = async () => {
+    try {
+      const client = create('http://127.0.0.1:5001')
+      await client.version();
+      message.success('Ipfs is running');
+      enableNext();
+    } catch (error) {
+      disableNext();
+      message.error('Ipfs is offline');
+    }
   };
-
-  const IPFSAddFiles = async (files) => {
-    const client = create('http://127.0.0.1:5001')
-    const addOptions = {
-      pin: true,
-      wrapWithDirectory: true,
-    }
-    let rootCid = ''
-    let res = {}
-    for await (const item of client.addAll(files, addOptions))
-    {
-      rootCid = item.cid.toString()
-      res[item.path] = {
-        cid: rootCid,
-        size: item.size
-      }
-    }
-    message.info(`Generated folder cid ${rootCid}`)
-    return res
-  }
 
   const IPFSView = () => {
     const InstallIpfsMarkdown1 = `
-## Overview
+## 1 Overview
 To build an unstoppable SCIHub, We could migrate all the papers into [IPFS](https://ipfs.io/) and capture the indexs. Different from the centralized storage method, you first need to start an IPFS node locally and store the file in this node, so that the file exists in the P2P network. We will use the [Crust](https://crust.network/) to store files permanently, and the nodes on Crust will pull the files through P2P. After waiting for other nodes to pull the file, the local file can be deleted. This web page will help you through this process.
 `
 
     const InstallIpfsMarkdown2 = `
-## Install IPFS
+## 2 Install IPFS
 Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your computer.
 
-## Check
+## 3 Allow cross-origin
+Make sure you have configured to allow [cross-origin(CORS) requests](https://github.com/ipfs/ipfs-webui#configure-ipfs-api-cors-headers). If not, run following commands and then **restart IPFS daemon or IPFS desktop**:
+
+3.1 Desktop
+
+Open the IPFS Desktop, enter the settings interface, change the API part of the IPFS CONFIG as shown below, and restart the software
+\`\`\`
+"API": {
+  "HTTPHeaders": {
+    "Access-Control-Allow-Methods": [
+      "PUT",
+      "POST"
+    ],
+    "Access-Control-Allow-Origin": ["*"]
+  }
+}
+\`\`\`
+
+3.2 CMD
+
+Windows CMD
+\`\`\`
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "["""*"""]"
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods "["""PUT""", """POST"""]"
+\`\`\`
+
+Or Linux & MACOS:
+\`\`\`
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'
+\`\`\`
+
+
+
+## 4. Check
 Click the button to make sure ipfs is running properly.
 `
     return (
@@ -115,61 +137,47 @@ Click the button to make sure ipfs is running properly.
   };
 
   //--------------------------------------------------------//
-  const [addFiles, setAddFiles] = React.useState([]);
   const [paperList, setPaperList] = React.useState([]);
   const [paperMetadataList, setPaperMetadataList] = React.useState([]);
   const [paperForm] = Form.useForm();
-  const [metaInfo, setMetaInfo] = React.useState({})
 
-  const checkMetadata = async (values) => {
-    message.info('Checking metadata');
-    let path = values["path"];
-    let tempPaperMetadataList = [];
-    let tempMetaInfo = {};
-    let index = 0;
-    let addedInfo = await IPFSAddFiles(addFiles)
-    tempMetaInfo = {
-      meta: {
-        links: []
+  const checkMetadata = (values) => {
+    if (values[0] === undefined) {
+      disableNext();
+      message.error('Please import papers');
+    } else {
+      if (values[100] != undefined) {
+        disableNext();
+        message.error('The number of papers should not exceed 100');
+      } else {
+        let dois = {};
+        let ts = {};
+        for (let i in values) {
+          if (dois[values[i].doi]) {
+            disableNext();
+            message.error("The doi '" + values[i].doi + "' is repeated");
+            return;
+          }
+          if (ts[values[i].title]) {
+            message.error("The title '" + values[i].title + "' is repeated");
+            disableNext();
+            return;
+          }
+          dois[values[i].doi] = true;
+          ts[values[i].title] = true;
+        }
+        setPaperMetadataList(values);
+        enableNext();
+        message.success('Metadata is right');
       }
     }
-    paperList.forEach((item) => {
-      tempPaperMetadataList.push({
-        name: item.name,
-        path: path + "/" + item.name,
-        title: values[index].title,
-        doi: values[index].doi,
-        authors: values[index].authors
-      });
-      tempMetaInfo[values[index].doi] = {
-        cid: addedInfo[item.name]['cid'],
-        size: addedInfo[item.name]['size'],
-        path: item.name,
-        meta: {
-          title: values[index].title,
-          doi: values[index].doi,
-          authors: values[index].authors
-        }
-      }
-      tempMetaInfo['meta']['links'].push({
-        cid: addedInfo[item.name]['cid'],
-        doi: values[index].doi,
-      })
-      index++
-    });
-    tempMetaInfo['meta']['cid'] = addedInfo['']['cid']
-    tempMetaInfo['meta']['size'] = addedInfo['']['size']
-    console.log(tempMetaInfo)
-    setMetaInfo(tempMetaInfo)
-    setPaperMetadataList(tempPaperMetadataList);
-    enableNext();
-    message.success('Metadata is right');
   };
+
   const paperListColumns = [
     {
       title: 'Paper Name',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'path',
+      key: 'path',
     },
     {
       title: '* Title',
@@ -214,16 +222,14 @@ Click the button to make sure ipfs is running properly.
       directory: true,
       beforeUpload(_, fileList) {
         let tempPaperList = [];
-        let tempAddFiles = []
         fileList.forEach((item) => {
           let paths = item.webkitRelativePath.split("/");
           if (paths.length === 2) {
-            tempPaperList.push({ name: item.name });
-            tempAddFiles.push({path:item.name, content:item})
+            tempPaperList.push({ path: item.name, content: item });
           }
         });
-        setAddFiles(tempAddFiles)
         setPaperList(tempPaperList);
+        disableNext();
         return new Promise();
       },
       showUploadList: false,
@@ -231,38 +237,30 @@ Click the button to make sure ipfs is running properly.
 
     const preparePapersMarkdown1 = `
 ## Introduction
-This step will guide you how to organize the articles and help you fill in the metadata related to the articles.
+This step will guide you how to organize the papers and help you fill in the metadata related to the papers.
 
 ## Prepare files
-First, you need to create a new folder and put the articles you want to upload into the same folder. Please note:
+First, you need to create a new folder and put the papers you want to upload into the same folder. Please note:
 
-- The number of articles should not exceed 100
+- The number of papers should not exceed 100
 - There can be no other files in the folder
 
-Fill in the absolute path of the folder in the space below:
+## Import folder
+The browser needs to determine the contents of the folder by importing. There is no privacy risk in this step. Please click this link for the open source [code](https://github.com/smokingdavinci/decentralized-scihub). Please select a folder in the import step:
 `
     const preparePapersMarkdown2 = `
-## Import folder
-The browser needs to determine the contents of the folder by importing. There is no privacy risk in this step. Please click this link for the open source [code](https://github.com/smokingdavinci/decentralized-scihub). Please select a folder in the import step, and make sure that it is the same as the folder path filled in the previous step:
-`
-
-    const preparePapersMarkdown3 = `
 ## Fill metadata
-Please fill in the necessary content of the article in the form below, where Title and DOI are mandatory. Authors should be separated by semicolons:
+Please fill in the necessary content of the paper in the form below, where Title and DOI are mandatory. Authors should be separated by semicolons:
 `
     return (
       <Form form={paperForm} onFinish={checkMetadata}>
         <>
           <div className="step-body">
             <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown1}</ReactMarkdown>
-            <Form.Item name="path" rules={[{ required: true, },]}>
-              <Input placeholder="Absolute path; example: windows->/c/Users/abc/Desktop, mac->/User/abc/Desktop/papers, linux->/home/abc/Desktop/papers" />
-            </Form.Item>
-            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown2}</ReactMarkdown>
             <Upload {...props}>
               <Button icon={<FolderOpenOutlined />}>Import folder</Button>
             </Upload>
-            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown3}</ReactMarkdown>
+            <ReactMarkdown linkTarget="_blank">{preparePapersMarkdown2}</ReactMarkdown>
             <Table dataSource={paperList} columns={paperListColumns} pagination={false} rowKey={record => record.num} />
           </div>
           <div className="steps-action">
@@ -283,32 +281,85 @@ Please fill in the necessary content of the article in the form below, where Tit
   //--------------------------------------------------------//
   const [resultRoot, setResultRoot] = React.useState("");
   const [resultFiles, setResultFiles] = React.useState([]);
+  const [ipfsUploadPercentage, setIpfsUploadPercentage] = React.useState(0);
+  const [nowUploadPaper, setNowUploadPaper] = React.useState("Not start");
 
-  const checkGenerate = () => {
-    message.info('Generating');
-    setGenerateStep(generateStep + 1);
-    if (generateStep > 1) {
-      setResultRoot("QmVUWhE5n23KtQ8wSTkYhgCaHALDFarfj31SigiNZvmKEc");
-      let rfs = [
-        {
-          name: "DOI1xxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-          content: "1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1"
-        },
-        {
-          name: "DOI2xxxxxxxxxxxxxxxxxxxxxxxxxxxxx2",
-          content: "2xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2"
-        },
-        {
-          name: "meta",
-          content: "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
-        },
-      ]
-      setResultFiles(rfs);
-      enableNext();
+  const ipfsAddFiles = async (files) => {
+    const client = create('http://127.0.0.1:5001')
+    let rootCid = ''
+    let res = {}
+    let dirCid = await client.object.new({
+      template: 'unixfs-dir'
+    })
+    let finshedIpfsUpload = 0;
+    for (let i = 0; i < files.length; i++) {
+      setNowUploadPaper(files[i].path);
+      const item = await client.add(files[i])
+      const cid = item.cid.toString()
+      res[item.path] = {
+        cid: cid,
+        size: item.size
+      }
+      dirCid = await client.object.patch.addLink(dirCid, {
+        name: item.path,
+        size: item.size,
+        cid: cid
+      })
+      finshedIpfsUpload += 100;
+      setIpfsUploadPercentage(finshedIpfsUpload / paperList.length);
     }
+    rootCid = dirCid.toString()
+    const dirStat = await client.object.stat(rootCid)
+    res[''] = {
+      cid: rootCid,
+      size: dirStat['CumulativeSize']
+    }
+    return res
+  }
+
+  const checkGenerate = async () => {
+    // Upload files to ipfs
+    let ipfsRes = undefined;
+    try {
+      ipfsRes = await ipfsAddFiles(paperList);
+    } catch (error) {
+      message.error('Ipfs is offline');
+      return
+    }
+    setNowUploadPaper("Upload to local IPFS successfully!");
+
+    // Get output
+    let tempMetaInfo = {
+      cid: ipfsRes['']['cid'],
+      size: ipfsRes['']['size'],
+      links: [],
+    };
+    let tempResultFiles = [];
+    let index = 0;
+
+    paperList.forEach((item) => {
+      let tempDoiFileList = {
+        cid: ipfsRes[item.path]['cid'],
+        size: ipfsRes[item.path]['size'],
+        doi: paperMetadataList[index].doi,
+        path: item.path,
+        title: paperMetadataList[index].title,
+        authors: paperMetadataList[index].authors
+      };
+      tempMetaInfo.links.push({
+        cid: ipfsRes[item.path]['cid'],
+        doi: paperMetadataList[index].doi
+      });
+      tempResultFiles.push({ path: tempDoiFileList['doi'], content: JSON.stringify(tempDoiFileList) });
+      index++
+    });
+
+    tempResultFiles.push({ path: 'meta', content: JSON.stringify(tempMetaInfo) });
+    setResultFiles(tempResultFiles);
+    setResultRoot(tempMetaInfo.cid);
+    enableNext();
   };
 
-  const [generateStep, setGenerateStep] = React.useState(0);
   const GenerateView = () => {
     const generateViewMarkdown = `
 ## Introduction
@@ -324,24 +375,8 @@ Click generate below to run the program:
       <>
         <div className="step-body">
           <ReactMarkdown linkTarget="_blank">{generateViewMarkdown}</ReactMarkdown>
-          {generateStep > 0 && (
-            <div>
-              <font size="5" color="green">Base information generated successfully!</font>
-            </div>
-          )}
-          {generateStep > 1 && (
-            <div>
-              <div>
-                <font size="5">Upload files to ipfs:</font>
-              </div>
-              <Progress type="circle" percent={75} />
-            </div >
-          )}
-          {generateStep > 2 && (
-            <div>
-              <font size="5" color="green">Generate result files successfully!</font>
-            </div>
-          )}
+          <Progress percent={ipfsUploadPercentage} />
+          <p className="blue-text">Status: {nowUploadPaper}</p>
         </div >
         <div className="steps-action">
           <Button className="check-button" type="primary" onClick={() => checkGenerate()}>
@@ -358,8 +393,8 @@ Click generate below to run the program:
   const resultFilesColumns = [
     {
       title: 'File Name',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'path',
+      key: 'path',
     },
     {
       title: 'Content',
@@ -368,18 +403,49 @@ Click generate below to run the program:
     },
   ];
 
-  const PRView = () => {
+  const dowloadViewMarkdown1 = `
+## 1 Download output
+Check the output content and click the download button to download the compressed package composed of the output files.
+
+## 2 Send pull request
+- Fork the [decentralized-scihub](https://github.com/smokingdavinci/decentralized-scihub) repository.
+- Clone your repository and unzip the output files and put it in the papers folder, the following is an example:
+`
+
+  const dowloadViewMarkdown2 = `
+- Create new branch and send pull request
+
+## 3 Wait CI pass (DO NOT CLOSE IPFS)
+After the PR is issued, the background CI will store the papers on Crust. This will take some time, usually around 1 hour to 2 hours.
+
+During this process, other IPFS nodes will pull files from the local machine. **Please ensure that the local network is smooth and keep the local IPFS online.** When the number of copies reaches a certain number, CI can be passed, which means that the papers is stored successfully.
+
+## 4 Output information
+`
+  const downloadFile = () => {
+    const zip = new JsZip
+    resultFiles.forEach((item) => {
+      let blob = new Blob([item.content], { type: "text/plain;charset=utf-8" });
+      zip.file(item.path, blob);
+    });
+    zip.generateAsync({ type: "blob" }).then(function (content) {
+      FileSaver.saveAs(content, resultRoot);
+    });
+  };
+
+  const OutputView = () => {
     return (
       <>
         <div className="step-body">
-          <font size="5">{resultRoot}</font>
-          <Table dataSource={resultFiles} columns={resultFilesColumns} rowKey={record => record.num} />
-        </div >
-        <div className="steps-action">
-          <Button type="primary" onClick={() => message.success('Save')}>
+          <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown1}</ReactMarkdown>
+          <img className="overview-img" src={outputImgUrl} />
+          <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown2}</ReactMarkdown>
+          <font size="4">Root: {resultRoot}</font>
+          <Button className="output-button" type="primary" onClick={() => downloadFile()}>
             Save output
           </Button>
-        </div>
+          <Table dataSource={resultFiles} columns={resultFilesColumns} pagination={false} rowKey={record => record.num} />
+        </div >
       </>
     );
   };
@@ -395,7 +461,7 @@ Click generate below to run the program:
         {current === 0 && (<IPFSView />)}
         {current === 1 && (<SelectPapersView />)}
         {current === 2 && (<GenerateView />)}
-        {current === 3 && (<PRView />)}
+        {current === 3 && (<OutputView />)}
       </div>
     </div>
   );

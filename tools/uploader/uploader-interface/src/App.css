@@ -43,3 +43,11 @@
   width: 70%;
 	height: 70%;
 }
+
+.output-button {
+  float: right;
+}
+
+.blue-text {
+  color:#1890ff;
+}
