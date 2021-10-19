@@ -41,7 +41,15 @@
   margin-top: 15px;
   margin-bottom: 15px;
   width: 70%;
-	height: 70%;
+  height: 70%;
+}
+
+.output-img {
+  margin-left: 13%;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  width: 70%;
+  height: 70%;
 }
 
 .output-button {

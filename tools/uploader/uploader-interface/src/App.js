@@ -121,7 +121,7 @@ Click the button to make sure ipfs is running properly.
       <>
         <div className="step-body">
           <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown1}</ReactMarkdown>
-          <img className="overview-img" src={overviewImgUrl} />
+          <img className="overview-img" src={overviewImgUrl} alt="overview" />
           <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown2}</ReactMarkdown>
         </div>
         <div className="steps-action">
@@ -146,7 +146,7 @@ Click the button to make sure ipfs is running properly.
       disableNext();
       message.error('Please import papers');
     } else {
-      if (values[100] != undefined) {
+      if (values[100] !== undefined) {
         disableNext();
         message.error('The number of papers should not exceed 100');
       } else {
@@ -423,7 +423,7 @@ During this process, other IPFS nodes will pull files from the local machine. **
 ## 4 Output information
 `
   const downloadFile = () => {
-    const zip = new JsZip
+    const zip = new JsZip();
     resultFiles.forEach((item) => {
       let blob = new Blob([item.content], { type: "text/plain;charset=utf-8" });
       zip.file(item.path, blob);
@@ -438,7 +438,7 @@ During this process, other IPFS nodes will pull files from the local machine. **
       <>
         <div className="step-body">
           <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown1}</ReactMarkdown>
-          <img className="overview-img" src={outputImgUrl} />
+          <img className="output-img" src={outputImgUrl} alt="output" />
           <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown2}</ReactMarkdown>
           <font size="4">Root: {resultRoot}</font>
           <Button className="output-button" type="primary" onClick={() => downloadFile()}>
