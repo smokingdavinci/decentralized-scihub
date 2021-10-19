@@ -78,7 +78,7 @@ To build an unstoppable SCIHub, We could migrate all the papers into [IPFS](http
 
     const InstallIpfsMarkdown2 = `
 ## 2 Install IPFS
-Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your computer.
+Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your device.
 
 ## 3 Allow cross-origin
 Make sure you have configured to allow [cross-origin(CORS) requests](https://github.com/ipfs/ipfs-webui#configure-ipfs-api-cors-headers). If not, run following commands and then **restart IPFS daemon or IPFS desktop**:
