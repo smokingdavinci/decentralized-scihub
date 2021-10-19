@@ -1,20 +1,20 @@
-# Decentralized Knowledge Hosting
+# Decentralized SCIHub
 
-## The Goal
+## Goal
 
 To build an unstoppable SCIHub, We could migrate all the papers into IPFS and capture the indexs, then develop a mirror page that retrieves all the papers from IPFS. It's very hard to download 80+TB of data and pinning them by one person. It will be very helpful if we could have a co-work with all the paper maintainers and developers.
 
-## About This Repo
+## Cases
 
 We use this repo to collaborate in the following areas:
 - :white_check_mark:Host web page to assist torrent maintainers to put the document on IPFS;
 - :chart_with_upwards_trend:Collect the index files pushed by all the torrent maintainers;
 - :construction:Develop an API that can use the index files;
-- :construction:Host a decentralized scihub;
+- :construction:Host a decentralized SCIHub;
 
 ## Usage
 
-### How to upload papers
+### Upload papers
 
 #### Logic
 
@@ -26,7 +26,7 @@ We provide a front-end page to help maintainers upload papers, this page is also
 
 http://example.com
 
-### How to contribute code
+### Contribute code
 Thank you for considering to help out with the source code! Welcome contributions from anyone on the internet, and are grateful for even the smallest of fixes!
 If you'd like to contribute to crust, please **fork, fix, commit and send a pull request for the maintainers to review and merge into the main codebase**.
 
@@ -37,7 +37,7 @@ Please make sure your contribution adhere to our coding guideliness:
 - A pull-request **must not be merged until CI** has finished successfully.
 - Make sure your every `commit` is [signed](https://help.github.com/en/github/authenticating-to-github/about-commit-signature-verification)
 
-### Donate us
+### Donate
 
 This repo is completely nonprofit and does not involve any commercial purpose. Your donation can make us better.
 
