@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  store on ipfs:
+  store-on-ipfs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
