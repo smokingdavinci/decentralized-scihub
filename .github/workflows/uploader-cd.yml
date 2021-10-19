@@ -1,6 +1,6 @@
 name: Uploader CD
 on:
-  pull_request:
+  push:
     paths:
       - 'tools/uploader/uploader-interface/**'
     branchs:

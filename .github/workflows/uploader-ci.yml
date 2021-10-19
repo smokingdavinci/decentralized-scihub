@@ -1,6 +1,6 @@
 name: Uploader CI
 on:
-  push:
+  pull_request:
     paths:
       - 'tools/uploader/uploader-interface/**'
     branchs:
