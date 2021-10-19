@@ -17,7 +17,7 @@ jobs:
         run: cd tools/uploader/uploader-interface/ && yarn && PUBLIC_URL=./ yarn build
 
       - name: upload to ipfs gateway
-        uses: crustio/ipfs-upload-action@2.0.2
+        uses: crustio/ipfs-upload-action@v2.0.2
         id: gateway
         with:
           path: './tools/uploader/uploader-interface/build'
