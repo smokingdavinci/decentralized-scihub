@@ -12,7 +12,3 @@ jobs:
       - uses: actions/checkout@v1
       - name: build
         run: cd tools/uploader/uploader-interface/ && yarn build
-      
-
-
-
