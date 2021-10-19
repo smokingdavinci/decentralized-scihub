@@ -24,7 +24,7 @@ We use this repo to collaborate in the following areas:
 
 We provide a front-end page to help maintainers upload papers, this page is also permanently stored on the decentralized network. For now, the page link is:
 
-http://example.com
+https://ipfs.io/ipfs/QmfHiPR1VCaW99N3a8GmYxvtif1xjkTu9p4m26fRxbfaqv/
 
 ### Contribute code
 Thank you for considering to help out with the source code! Welcome contributions from anyone on the internet, and are grateful for even the smallest of fixes!
