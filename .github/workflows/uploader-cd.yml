@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: build
-        run: cd tools/uploader/uploader-interface/ && yarn build
+        run: cd tools/uploader/uploader-interface/ && yarn && yarn build
 
       - name: upload to ipfs gateway
         uses: crustio/ipfs-upload-action@2.0.2
