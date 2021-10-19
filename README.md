@@ -7,10 +7,10 @@ To build an unstoppable SCIHub, We could migrate all the papers into IPFS and ca
 ## About This Repo
 
 We use this repo to collaborate in the following areas:
-- Host web page to assist torrent maintainers to put the document on IPFS;
-- Collect the index files pushed by all the torrent maintainers;
-- Develop an API that can use the index files;
-- Host a decentralized scihub;
+- :white_check_mark:Host web page to assist torrent maintainers to put the document on IPFS;
+- :chart_with_upwards_trend:Collect the index files pushed by all the torrent maintainers;
+- :construction:Develop an API that can use the index files;
+- :construction:Host a decentralized scihub;
 
 ## Usage
 
