@@ -5,6 +5,7 @@ import { Steps, Button, Upload, message, Table, Input, Progress, Form } from 'an
 import ReactMarkdown from 'react-markdown';
 import overviewImgUrl from './pic/overview.png';
 import outputImgUrl from './pic/output.png';
+import ipfsConfigImgUrl from './pic/ipfs-config.png';
 import FileSaver from 'file-saver';
 import JsZip from 'jszip'
 import { create } from 'ipfs-http-client'
@@ -78,14 +79,12 @@ To build an unstoppable SCIHub, We could migrate all the papers into [IPFS](http
 
     const InstallIpfsMarkdown2 = `
 ## 2 Install IPFS
-Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your device.
+Follow this [link](https://docs.ipfs.io/install/ipfs-desktop/) to download and run IPFS on your device.
 
 ## 3 Allow cross-origin
-Make sure you have configured to allow [cross-origin(CORS) requests](https://github.com/ipfs/ipfs-webui#configure-ipfs-api-cors-headers). If not, run following commands and then **restart IPFS daemon or IPFS desktop**:
+Make sure you have configured to allow [cross-origin(CORS) requests](https://github.com/ipfs/ipfs-webui#configure-ipfs-api-cors-headers). Open the IPFS Desktop, enter the settings interface, change the API part of the IPFS CONFIG as shown below, **save and restart IPFS desktop**. 
 
-3.1 Desktop
-
-Open the IPFS Desktop, enter the settings interface, change the API part of the IPFS CONFIG as shown below, and restart the software
+Config:
 \`\`\`
 "API": {
   "HTTPHeaders": {
@@ -98,22 +97,9 @@ Open the IPFS Desktop, enter the settings interface, change the API part of the 
 }
 \`\`\`
 
-3.2 CMD
-
-Windows CMD
-\`\`\`
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "["""*"""]"
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods "["""PUT""", """POST"""]"
-\`\`\`
-
-Or Linux & MACOS:
-\`\`\`
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'
-\`\`\`
-
-
-
+Like:
+`
+const InstallIpfsMarkdown3 = `
 ## 4. Check
 Click the button to make sure ipfs is running properly.
 `
@@ -123,6 +109,8 @@ Click the button to make sure ipfs is running properly.
           <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown1}</ReactMarkdown>
           <img className="overview-img" src={overviewImgUrl} alt="overview" />
           <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown2}</ReactMarkdown>
+          <img className="ipfs-config-img" src={ipfsConfigImgUrl} alt="overview" />
+          <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown3}</ReactMarkdown>
         </div>
         <div className="steps-action">
           <Button className="check-button" type="primary" onClick={() => checkIpfs()}>
