@@ -10,9 +10,11 @@ jobs:
   store-on-ipfs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+        
       - name: build
-        run: cd tools/uploader/uploader-interface/ && yarn && yarn build
+        run: cd tools/uploader/uploader-interface/ && yarn && PUBLIC_URL=./ yarn build
 
       - name: upload to ipfs gateway
         uses: crustio/ipfs-upload-action@2.0.2
