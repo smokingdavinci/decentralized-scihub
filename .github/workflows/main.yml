@@ -1,3 +1,4 @@
+name: Pin SCI doc to Crust
 on:
   pull_request:
     paths:
@@ -6,47 +7,51 @@ on:
       - main
 
 jobs:
-  changefiles:
+  file_info:
     runs-on: ubuntu-latest
     outputs:
-      files: ${{ steps.getchangefiles.outputs.files }}
+      cid: ${{ steps.get_file_info.outputs.cid }}
+      cidLength: ${{ steps.get_file_info.outputs.cidLength }}
+      size: ${{ steps.get_file_info.outputs.size }}
     steps:
       - uses: actions/checkout@v1
-      - id: getchangefiles
-        run: echo "::set-output name=files::$(git diff --name-only --diff-filter=ACM ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
-
-  getcid:
-    runs-on: ubuntu-latest
-    needs: changefiles
-    outputs:
-      cid: ${{ steps._getcid.outputs.cid }}
-    steps:
-      - uses: actions/checkout@v1
-      - id: _getcid
+      - id: get_file_info
         run: |
-          chmod +x ".github/etc/getcid.sh"
-          echo ::set-output name=cid::$(./.github/etc/getcid.sh "${{ needs.changefiles.outputs.files }}")
-
-  getcidlength:
-    runs-on: ubuntu-latest
-    needs: getcid
-    outputs:
-      length: ${{ steps._getcidlength.outputs.length }}
-    steps:
-      - id: _getcidlength
-        run: echo "::set-output name=length::$( echo ${{ needs.getcid.outputs.cid }} | awk '{print length}')"
+          chmod +x ".github/etc/getInfo.sh"
+          chmod +x ".github/etc/jq"
+          info=$(./.github/etc/getInfo.sh "$(git diff --name-only --diff-filter=ACM ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)")
+          cid=$(echo $info | .github/etc/jq -r .cid)
+          cidLength=$(echo $cid | awk '{print length}')
+          size=$(echo $info | .github/etc/jq -r .size)
+          echo "::set-output name=cid::$cid"
+          echo "::set-output name=cidLength::$cidLength"
+          echo "::set-output name=size::$size"
 
   upload_sci_doc:
     name: Upload SCI doc
     runs-on: ubuntu-latest
-    needs: [getcid, getcidlength]
+    needs: file_info
+    if: needs.file_info.outputs.cidLength == 46
     steps:
-      - run: |
-          if [ x"${{ needs.getcidlength.outputs.length }}" != x"46" ]; then
-              echo "Get wrong file cid"
-              exit 1
-          fi
-      - uses: crustio/ipfs-crust-action@v2.0.3
+      - uses: crustio/ipfs-crust-action@v2.0.4
+        timeout-minutes: 15
         with:
-          cid: ${{ needs.getcid.outputs.cid }}
+          cid: ${{ needs.file_info.outputs.cid }}
+          size: ${{ needs.file_info.outputs.size }}
           seeds: ${{ secrets.CRUST_SEEDS }}
+      - uses: actions/checkout@v2.1.0
+      - name: Crust replicas action
+        id: replica
+        uses: crustio/crust-replicas-action@v1.0.3
+        with:
+          cid: ${{ needs.file_info.outputs.cid }}
+          crust-endpoint: 'wss://rpc.crust.network'
+          file-replica: 15
+          max-attempts: 360
+      - name: Get file replica
+        run: |
+            if [ x"${{ steps.replica.outputs.replicaCount }}" = x"0" ]; then
+                echo "Upload papers failed! Please make sure your local IPFS is online and rerun PR"
+                exit 1
+            fi
+            echo "Upload papers successfully! Replica: ${{ steps.replica.outputs.replicaCount }}"

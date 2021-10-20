@@ -125,11 +125,9 @@ Click the button to make sure ipfs is running properly.
   };
 
   //--------------------------------------------------------//
-  const [addFiles, setAddFiles] = React.useState([]);
   const [paperList, setPaperList] = React.useState([]);
   const [paperMetadataList, setPaperMetadataList] = React.useState([]);
   const [paperForm] = Form.useForm();
-  const [outputFiles, setOutputFiles] = React.useState({})
 
   const checkMetadata = (values) => {
     if (values[0] === undefined) {
@@ -204,7 +202,7 @@ Click the button to make sure ipfs is running properly.
           </Form.Item>
         );
       }
-    },
+    }
   ];
 
   const SelectPapersView = () => {
@@ -212,14 +210,12 @@ Click the button to make sure ipfs is running properly.
       directory: true,
       beforeUpload(_, fileList) {
         let tempPaperList = [];
-        let tempAddFiles = []
         fileList.forEach((item) => {
           let paths = item.webkitRelativePath.split("/");
           if (paths.length === 2) {
             tempPaperList.push({ path: item.name, content: item });
           }
         });
-        setAddFiles(tempAddFiles)
         setPaperList(tempPaperList);
         disableNext();
         return new Promise();
