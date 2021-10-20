@@ -414,7 +414,7 @@ During this process, other IPFS nodes will pull files from the local machine. **
     const zip = new JsZip();
     resultFiles.forEach((item) => {
       let blob = new Blob([item.content], { type: "text/plain;charset=utf-8" });
-      zip.file(item.path, blob);
+      zip.file(item.path.replace('/', '%'), blob);
     });
     zip.generateAsync({ type: "blob" }).then(function (content) {
       FileSaver.saveAs(content, resultRoot);
