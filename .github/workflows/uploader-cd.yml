@@ -1,0 +1,33 @@
+name: Uploader CD
+on:
+  push:
+    paths:
+      - 'tools/uploader/uploader-interface/**'
+    branchs:
+      - main
+
+jobs:
+  store-on-ipfs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: build
+        run: cd tools/uploader/uploader-interface/ && yarn && PUBLIC_URL=./ yarn build
+
+      - name: upload to ipfs gateway
+        uses: crustio/ipfs-upload-action@v2.0.2
+        id: gateway
+        with:
+          path: './tools/uploader/uploader-interface/build'
+          seeds: ${{ secrets.CRUST_SEEDS }}
+
+      - name: store front-end on crust
+        uses: crustio/ipfs-crust-action@v2.0.4
+        with:
+          cid: ${{ steps.gateway.outputs.hash }}
+          seeds: ${{ secrets.CRUST_SEEDS }}
+
+      - name: success
+        run: echo "Now, you can access with 'https://ipfs.io/ipfs/${{ steps.gateway.outputs.hash }}'"

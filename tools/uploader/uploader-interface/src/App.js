@@ -5,6 +5,7 @@ import { Steps, Button, Upload, message, Table, Input, Progress, Form } from 'an
 import ReactMarkdown from 'react-markdown';
 import overviewImgUrl from './pic/overview.png';
 import outputImgUrl from './pic/output.png';
+import ipfsConfigImgUrl from './pic/ipfs-config.png';
 import FileSaver from 'file-saver';
 import JsZip from 'jszip'
 import { create } from 'ipfs-http-client'
@@ -78,14 +79,12 @@ To build an unstoppable SCIHub, We could migrate all the papers into [IPFS](http
 
     const InstallIpfsMarkdown2 = `
 ## 2 Install IPFS
-Follow this [link](https://docs.ipfs.io/install/) to download and run IPFS on your computer.
+Follow this [link](https://docs.ipfs.io/install/ipfs-desktop/) to download and run IPFS on your device.
 
 ## 3 Allow cross-origin
-Make sure you have configured to allow [cross-origin(CORS) requests](https://github.com/ipfs/ipfs-webui#configure-ipfs-api-cors-headers). If not, run following commands and then **restart IPFS daemon or IPFS desktop**:
+Make sure you have configured to allow [cross-origin(CORS) requests](https://github.com/ipfs/ipfs-webui#configure-ipfs-api-cors-headers). Open the IPFS Desktop, enter the settings interface, change the API part of the IPFS CONFIG as shown below, **save and restart IPFS desktop**. 
 
-3.1 Desktop
-
-Open the IPFS Desktop, enter the settings interface, change the API part of the IPFS CONFIG as shown below, and restart the software
+Config:
 \`\`\`
 "API": {
   "HTTPHeaders": {
@@ -98,22 +97,9 @@ Open the IPFS Desktop, enter the settings interface, change the API part of the 
 }
 \`\`\`
 
-3.2 CMD
-
-Windows CMD
-\`\`\`
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "["""*"""]"
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods "["""PUT""", """POST"""]"
-\`\`\`
-
-Or Linux & MACOS:
-\`\`\`
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'
-\`\`\`
-
-
-
+Like:
+`
+const InstallIpfsMarkdown3 = `
 ## 4. Check
 Click the button to make sure ipfs is running properly.
 `
@@ -121,8 +107,10 @@ Click the button to make sure ipfs is running properly.
       <>
         <div className="step-body">
           <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown1}</ReactMarkdown>
-          <img className="overview-img" src={overviewImgUrl} />
+          <img className="overview-img" src={overviewImgUrl} alt="overview" />
           <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown2}</ReactMarkdown>
+          <img className="ipfs-config-img" src={ipfsConfigImgUrl} alt="overview" />
+          <ReactMarkdown linkTarget="_blank">{InstallIpfsMarkdown3}</ReactMarkdown>
         </div>
         <div className="steps-action">
           <Button className="check-button" type="primary" onClick={() => checkIpfs()}>
@@ -148,7 +136,7 @@ Click the button to make sure ipfs is running properly.
       disableNext();
       message.error('Please import papers');
     } else {
-      if (values[100] != undefined) {
+      if (values[100] !== undefined) {
         disableNext();
         message.error('The number of papers should not exceed 100');
       } else {
@@ -427,7 +415,7 @@ During this process, other IPFS nodes will pull files from the local machine. **
 ## 4 Output information
 `
   const downloadFile = () => {
-    const zip = new JsZip
+    const zip = new JsZip();
     resultFiles.forEach((item) => {
       let blob = new Blob([item.content], { type: "text/plain;charset=utf-8" });
       zip.file(item.path, blob);
@@ -442,7 +430,7 @@ During this process, other IPFS nodes will pull files from the local machine. **
       <>
         <div className="step-body">
           <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown1}</ReactMarkdown>
-          <img className="overview-img" src={outputImgUrl} />
+          <img className="output-img" src={outputImgUrl} alt="output" />
           <ReactMarkdown linkTarget="_blank">{dowloadViewMarkdown2}</ReactMarkdown>
           <font size="4">Root: {resultRoot}</font>
           <Button className="output-button" type="primary" onClick={() => downloadFile()}>
