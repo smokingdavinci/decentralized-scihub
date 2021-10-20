@@ -35,7 +35,6 @@ Please make sure your contribution adhere to our coding guideliness:
 - **No --force pushes** or modifying the main branch history in any way. If you need to rebase, ensure you do it in your own repo.
 - Pull requests need to be based on and opened against the `main branch`.
 - A pull-request **must not be merged until CI** has finished successfully.
-- Make sure your every `commit` is [signed](https://help.github.com/en/github/authenticating-to-github/about-commit-signature-verification)
 
 ### Donate
 
