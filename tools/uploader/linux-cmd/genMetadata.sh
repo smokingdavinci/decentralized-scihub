@@ -1,7 +1,7 @@
 #!/bin/bash
 function proc_exit()
 {
-    rm $TMPFILE $TMPFILE2 &>/dev/null
+    rm $TMPFILE $TMPFILE2 $ERRFILE &>/dev/null
 }
 
 ##### MAIN BODY #####
@@ -13,6 +13,7 @@ finaldir=$basedir/final
 finalparentdir=$(dirname $finaldir)
 TMPFILE=$basedir/.tmp.$$
 TMPFILE2=$basedir/.tmp.$$.2
+ERRFILE=$basedir/.error.$$
 ipfsurl=http://127.0.0.1:5001/api/v0
 metafile=$finaldir/meta
 sub_info_arry=()
@@ -42,9 +43,9 @@ if ! cat $metajson | jq . &>/dev/null; then
 fi
 
 # Create IPFS tmp directory
-curl -X POST "$ipfsurl/object/new?arg=unixfs-dir" 1>$TMPFILE 2>/dev/null
+curl -X POST "$ipfsurl/object/new?arg=unixfs-dir" 1>$TMPFILE 2>$ERRFILE
 if [ $? -ne 0 ]; then
-    echo "ERROR: create new directory failed!"
+    echo "ERROR: create new directory failed! Detail:$(cat $ERRFILE)"
     exit 1
 fi
 ipfsrootcid=$(cat $TMPFILE | jq -r '.Hash')
@@ -65,7 +66,8 @@ while read path; do
         if cat $metajson | jq ".$filename" &>/dev/null; then
             info=$(cat $metajson | jq ".$filename")
             doi=$(echo $info | jq -r '.doi')
-            fileinfo="{\"cid\":\"$cid\",\"size\":$size,\"filename\":\"$filename\",\"meta\":$info}"
+            info=${info:1:len-1}
+            fileinfo="{\"cid\":\"$cid\",\"size\":$size,\"filename\":\"$filename\",$info}"
             echo "$fileinfo" | jq . > $finaldir/$doi
             echo "INFO: add file:$path successfully!"
             curl -X POST "$ipfsurl/object/patch/add-link?arg=$ipfsrootcid&arg=$filename&arg=$cid" 1>$TMPFILE2 2>/dev/null

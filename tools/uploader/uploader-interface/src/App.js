@@ -202,7 +202,7 @@ Click the button to make sure ipfs is running properly.
           </Form.Item>
         );
       }
-    },
+    }
   ];
 
   const SelectPapersView = () => {
