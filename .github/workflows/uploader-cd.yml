@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - 'tools/uploader/uploader-interface/**'
+    paths-ignore:
+      - 'tools/uploader/uploader-interface/README.md'
     branchs:
       - main
 
