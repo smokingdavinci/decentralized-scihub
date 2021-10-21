@@ -45,11 +45,11 @@
 }
 
 .output-img {
-  margin-left: 13%;
+  margin-left: 10%;
   margin-top: 15px;
   margin-bottom: 15px;
-  width: 70%;
-  height: 70%;
+  width: 80%;
+  height: 80%;
 }
 
 .ipfs-config-img {
@@ -57,6 +57,14 @@
   margin-bottom: 15px;
   width: 100%;
   height: 100%;
+}
+
+.pass-cd-img {
+  margin-left: 10%;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  width: 80%;
+  height: 80%;
 }
 
 .output-button {
