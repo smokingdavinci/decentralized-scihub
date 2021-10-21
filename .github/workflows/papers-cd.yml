@@ -3,8 +3,6 @@ on:
   push:
     paths:
       - 'papers/**'
-    paths-ignore:
-      - 'papers/README.md'
     branchs:
       - main
 
