@@ -19,7 +19,7 @@ jobs:
         run: |
           chmod +x ".github/etc/getInfo.sh"
           chmod +x ".github/etc/jq"
-          info=$(./.github/etc/getInfo.sh "$(git diff --name-only --diff-filter=ACM ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)")
+          info=$(./.github/etc/getInfo.sh "$(git diff --name-only --diff-filter=A ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)")
           cid=$(echo $info | .github/etc/jq -r .cid)
           cidLength=$(echo $cid | awk '{print length}')
           size=$(echo $info | .github/etc/jq -r .size)
