@@ -1,4 +1,4 @@
-name: Check meta info
+name: Check paper meta
 on:
   pull_request:
     paths:

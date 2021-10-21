@@ -1,8 +1,26 @@
 #!/bin/bash
+function isNumber()
+{
+    local tmpSize=$1
+    if [ x"$tmpSize" = x"0" ]; then
+        return 0
+    fi
+
+    if ! [[ $tmpSize =~ ^[1-9][0-9]*$ ]]; then
+        echo "$tmpSize is not a valid number"
+        return 1
+    fi
+}
+
 function isValidCid()
 {
     local tmpCid=$1
     local ret=0
+    if [ x"$tmpCid" = x"" ]; then
+        echo "cid cannot be empty"
+        return 1
+    fi
+
     if ! [[ $tmpCid =~ ^Qm ]]; then
         ret=1
     fi
@@ -23,6 +41,7 @@ files=($1)
 cidLength=46
 maxNum=100
 maxSize=$((5 * 1024 * 1024 * 1024))
+fileMaxSize=$((500 * 1024 * 1024))
 dirTag="papers"
 cidTag='(?<=papers/).*(?=/)'
 JQ=$basedir/jq
@@ -57,6 +76,7 @@ fi
 cidRootGet=$(cat $metaFile | $JQ -r .cid)
 isValidCid $cidRootGet || { exit 1; }
 totalSizeGet=$(cat $metaFile | $JQ -r .size)
+isNumber $totalSizeGet || { exit 1; }
 countSize=0
 declare -A doi2cid
 subCids=($(cat $metaFile | jq -r '.links|.[]|.cid'))
@@ -71,6 +91,11 @@ for doi in $(cat $metaFile | jq -r '.links|.[]|.doi'); do
     cidGet=$(cat $doiFile | $JQ -r .cid)
     isValidCid $cidGet || { exit 1; }
     sizeGet=$(cat $doiFile | $JQ -r .size)
+    isNumber $sizeGet || { exit 1; }
+    if [ $sizeGet -gt $fileMaxSize ]; then
+        echo "file:$(cat $doiFile | $JQ -r .path) size:$sizeGet is greater than file size limit:$fileMaxSize"
+        exit 1
+    fi
     if [ x"$cidGet" != x"${subCids[$index]}" ]; then
         echo "doi file:$doiFile cid:$cidGet not equal to meta sub-cid:${subCids[$index]}"
         exit 1
