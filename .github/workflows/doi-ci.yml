@@ -1,4 +1,4 @@
-name: Check paper meta
+name: Check doi
 on:
   pull_request:
     paths:
@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  check_meta:
+  check_doi:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

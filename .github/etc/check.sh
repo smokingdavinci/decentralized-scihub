@@ -78,7 +78,6 @@ isValidCid $cidRootGet || { exit 1; }
 totalSizeGet=$(cat $metaFile | $JQ -r .size)
 isNumber $totalSizeGet || { exit 1; }
 countSize=0
-declare -A doi2cid
 subCids=($(cat $metaFile | jq -r '.links|.[]|.cid'))
 subDois=($(cat $metaFile | jq -r '.links|.[]|.doi'))
 if [ ${#subCids[@]} -ne ${#subDois[@]} ]; then
