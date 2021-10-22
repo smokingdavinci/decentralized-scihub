@@ -26,8 +26,6 @@ We provide a front-end page to help maintainers upload papers, this page is also
 
 https://ipfs.io/ipfs/QmQQHp2ma162rStrZpFepezWypGsfgD8pXr7Q7tbPf32M9/
 
-
-
 ### Contribute code
 Thank you for considering to help out with the source code! Welcome contributions from anyone on the internet, and are grateful for even the smallest of fixes!
 If you'd like to contribute to crust, please **fork, fix, commit and send a pull request for the maintainers to review and merge into the main codebase**.
