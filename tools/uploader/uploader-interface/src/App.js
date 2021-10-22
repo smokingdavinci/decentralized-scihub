@@ -394,7 +394,7 @@ Click generate below to run the program:
 
   const dowloadViewMarkdown1 = `
 ## 1 Download output
-Check the output content and click the download button to download the compressed package composed of the output files.
+Check the output content and click the download button to download the compressed package composed of the output files. Note that the file name does not support the '/' symbol, **the '/' in the DOI will be replaced with '%'**
 
 ## 2 Send pull request
 - Fork the [decentralized-scihub](https://github.com/smokingdavinci/decentralized-scihub) repository.
