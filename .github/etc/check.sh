@@ -87,7 +87,7 @@ fi
 index=0
 ## Check if cid is right
 for doi in ${subDois[@]}; do
-    doi=${doi/\%/\/}
+    doi=${doi/\//\%}
     doiFile="$dirTag/$cidRoot/$doi"
     if [ ! -f "$doiFile" ]; then
         echo "doi file:$doiFile not found"
