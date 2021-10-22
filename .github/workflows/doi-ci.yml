@@ -1,0 +1,19 @@
+name: Check doi
+on:
+  pull_request:
+    paths:
+      - 'papers/**'
+    branchs:
+      - main
+
+jobs:
+  check_doi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - run: |
+          chmod +x ".github/etc/check_doi.sh"
+          ./.github/etc/check_doi.sh "$(git diff --name-only --diff-filter=A ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
+          if [ $? -ne 0 ]; then
+              exit 1
+          fi

@@ -60,7 +60,8 @@ cidRoot=${cidArry[0]}
 isValidCid $cidRoot || { exit 1; }
 
 ### Check if paper number is valid
-papers=($(printf '%s\n' "${files[@]}" | grep "$dirTag/$cidRoot/" | grep -v "$dirTag/$cidRoot/meta"))
+metaFile="$dirTag/$cidRoot/meta" 
+papers=($(printf '%s\n' "${files[@]}" | grep "$dirTag/$cidRoot/" | grep -v "$metaFile"))
 papersNum=${#papers[*]}
 if [ $papersNum -gt $maxNum ] || [ $papersNum -le 0 ]; then
     echo "Upload file number should range (0, $maxNum]"
@@ -68,7 +69,6 @@ if [ $papersNum -gt $maxNum ] || [ $papersNum -le 0 ]; then
 fi
 
 ### Check meta
-metaFile="$dirTag/$cidRoot/meta" 
 if [ ! -f "$metaFile" ]; then
     echo "meta file not found"
     exit 1
@@ -78,11 +78,16 @@ isValidCid $cidRootGet || { exit 1; }
 totalSizeGet=$(cat $metaFile | $JQ -r .size)
 isNumber $totalSizeGet || { exit 1; }
 countSize=0
-declare -A doi2cid
 subCids=($(cat $metaFile | jq -r '.links|.[]|.cid'))
+subDois=($(cat $metaFile | jq -r '.links|.[]|.doi'))
+if [ ${#subCids[@]} -ne ${#subDois[@]} ]; then
+    echo "Meta file links cid and doi don't match"
+    exit 1
+fi
 index=0
 ## Check if cid is right
-for doi in $(cat $metaFile | jq -r '.links|.[]|.doi'); do
+for doi in ${subDois[@]}; do
+    doi=${doi/\%/\/}
     doiFile="$dirTag/$cidRoot/$doi"
     if [ ! -f "$doiFile" ]; then
         echo "doi file:$doiFile not found"
