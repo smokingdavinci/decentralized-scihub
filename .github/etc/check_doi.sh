@@ -2,7 +2,7 @@
 function isValidDoi()
 {
     local tmpDoi=$1
-    if [ x"$tmpDoi" != x"" ] && [[ $tmpDoi =~ 10.[0-9]{4,9}%[-._\;()/:a-z0-9A-Z]+ ]]; then
+    if [ x"$tmpDoi" != x"" ] && [[ $tmpDoi =~ 10.[0-9]{4,9}/[-._\;()/:a-z0-9A-Z]+ ]]; then
         return 0
     fi
 
@@ -83,6 +83,7 @@ if [ ${#doi2cid[@]} -ne ${#papers[@]} ]; then
 fi
 for file in ${papers[@]}; do
     doi=$(basename $file)
+    doi=${doi/\%/\/}
     isValidDoi $doi || { exit 1; }
     cid=$(cat $file | $JQ -r .cid)
     isValidCid $cid || { exit 1; }
